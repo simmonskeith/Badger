@@ -1,0 +1,42 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Badger.Runner.Interfaces
+{
+    public interface IBadgerGui
+    {
+        string TestPath { get; set; }
+        string OutputPath { get; set; }
+        string TestStatusText { get; set; }
+        string ResourceFileText { get; set; }
+        Color TestStatusForeColor { get; set; }
+        Color TestStatusBackColor { get; set; }
+
+        bool RunButtonEnabled { get; set; }
+        bool ViewOutputButtonEnabled { get; set; }
+        bool ViewReportButtonEnabled { get; set; }
+        bool SelectFileEnabled { get; set; }
+        bool SelectTestFolderEnabled { get; set; }
+        bool SelectOutputFolderEnabled { get; set; }
+        bool NewTestEnabled { get; set; }
+        bool EditTestEnabled { get; set; }
+        bool ResourceFileLabelVisible { get; set; }
+
+        bool ShowDialog();
+
+        event EventHandler OnFormLoad;
+        event EventHandler OnSelectTestFile;
+        event EventHandler OnSelectTestFolder;
+        event EventHandler OnSelectOutputFolder;
+        event EventHandler OnSelectResourceFile;
+        event EventHandler OnRun;
+        event EventHandler OnViewOutput;
+        event EventHandler OnViewReport;
+        event EventHandler OnEditTest;
+        event EventHandler OnNewTest;
+    }
+}

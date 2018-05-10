@@ -1,0 +1,40 @@
+﻿html, body { height:100%; }
+#container { width:100%; height:100%; }
+#title { }
+#date { margin-bottom:0; }
+#header { width:100%; position:relative; }
+#summary tr.title { font-size: 1.3em; font-weight: bold; text-align:left; }
+#summary td.summary_key { font-size: 1em; font-weight: bold; }
+#summary td.summary_value { font-weight: bold; font-size: 1em; }
+#totals {border: 1px solid black; border-collapse:collapse;}
+#totals th {border: 1px solid black; border-collapse:collapse; width: 15%; font-weight: bold; text-align:center; background-color: Gray}
+#totals td {border: 1px solid black; border-collapse:collapse; width: 15%; font-weight: bold; text-align:center; background-color: White}
+#toc { border-style:solid; border-width:1px; border-color: Black; border-collapse:collapse; }
+#toc tr.subheader td{ text-align:center; font-size: 1em; font-weight: bold; color: #fff; background-color: Gray; border-style:solid; border-width:1px; border-color: Black; }
+#toc td{ width: 7%; font-size: 1em; font-weight: bold; border-style:solid; border-width:1px; border-color: Black; text-align: center; }
+#toc td.test_desc { width: 40%; font-weight: normal; text-align: left; }
+#toc td.test_pass { width: 7%; font-weight: bold; text-align:center; background-color: rgb(0,255,0); }
+#toc td.test_fail { width: 7%; font-weight: bold; text-align:center; background-color: Red; }
+#toc td.test_na { width: 7%; font-weight: bold; text-align:center; }
+#toc td.test_warn {  width: 7%; font-weight: bold; text-align:center; background-color: Yellow; }
+#toc td.test_error { width: 7%; font-weight: bold; text-align:center; background-color: Orange; }
+#toc td.test_skip { width: 7%; font-weight: bold; text-align:center; background-color: #333; color: #fff }
+#toc td.test_ignore { width: 7%; font-weight: bold; text-align:center; background-color: #999; color: #000 }
+#toc tr:nth-child(odd) { background-color: White; }
+#toc tr:nth-child(even) { background-color: rgb(225,225,225); }
+#tests tr.subheader td{ text-align:center; font-size: 1em; font-weight: bold; background-color: rgb(225,225,225); border-style:solid; border-width:1px; border-color: Black; }
+#tests { border-style:solid; border-color:Black; border-collapse:collapse; width:100%; }
+#tests tr:nth-child(odd) { background-color: White; }
+#tests tr:nth-child(even) { background-color: rgb(225,225,225); }
+#tests tr.int_header { font-size: .9em; font-weight: bold; text-align:center; background-color: Gray; color: #fff}
+#tests td{ border-style:solid; border-width:1px; border-color: Black; vertical-align: text-top;}
+#tests td.int_pass { font-size: 1em; font-weight: bold; background-color: rgb(0,255,0); text-align:center; }
+#tests td.int_fail { font-size: 1em; font-weight: bold; background-color: Red; text-align:center; }
+#tests td.int_desc { font-size: 1em; font-weight: bold; }
+#tests td.int_log { font-size: 1em; font-weight: bold; text-align:center; }
+#tests td.int_warn { font-size: 1em; font-weight: bold; text-align:center; background-color: Yellow; }
+#tests td.int_error { font-size: 1em; font-weight: bold; text-align:center; background-color: Orange; }
+#tests td.int_skip { font-size: 1em; font-weight: bold; text-align:center; background-color: #333; color: #FFF; }
+#tests td.int_ignore { font-size: 1em; font-weight: bold; text-align:center; background-color: #999; color: #000; }
+#tests td.int_value { font-size: 1em; white-space:pre; }
+tr.subheader { width:100%; font-size: 1em; font-weight: bold; text-align:center; }
