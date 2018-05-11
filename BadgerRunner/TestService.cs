@@ -75,7 +75,7 @@ namespace Badger.Runner
             if (missingSteps.Count > 0)
             {
                 Console.WriteLine("Unable to exeucte the test case.");
-                Console.WriteLine("The following steps do not have definintions:\n" + string.Join("\n", missingSteps));
+                Console.WriteLine("The following steps do not have definintions:\n" + string.Join("\n", missingSteps.Select(s=>s.Keyword)));
                 
                 return false; 
             }
