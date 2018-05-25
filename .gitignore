@@ -1,0 +1,14 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/BadgerCore/bin/
+/BadgerCore/obj/
+/BadgerRunner/obj/
+/BadgerRunner/bin/
+/BadgerTests/bin/
+/BadgerTests/obj/
+*.suo
+/bin
+/packages
+
