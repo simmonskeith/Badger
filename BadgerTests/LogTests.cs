@@ -9,6 +9,7 @@ using System.IO;
 using Xunit;
 using NSubstitute;
 using System.Text.RegularExpressions;
+using FluentAssertions;
 
 namespace Badger.Tests
 {
@@ -37,7 +38,7 @@ namespace Badger.Tests
 
             _fileService.Received(1).WriteLine(Path.Combine(_logpath, "log.txt"), Arg.Is<string>(s=>expectedString.IsMatch(s)));
             _fileService.Received(1).WriteConsole(Arg.Is<string>(s => expectedString.IsMatch(s)));
-            Assert.Equal(0, Log.FailCount);
+            Log.FailCount.Should().Be(0);
         }
 
         
@@ -51,7 +52,7 @@ namespace Badger.Tests
 
             _fileService.Received(1).WriteLine(Path.Combine(_logpath, "log.txt"), Arg.Is<string>(s=>expectedString.IsMatch(s)));
             _fileService.Received(1).WriteConsole(Arg.Is<string>(s=>expectedString.IsMatch(s)));
-            Assert.Equal(0, Log.FailCount);
+            Log.FailCount.Should().Be(0);
         }
         
         [Fact]
@@ -87,7 +88,7 @@ namespace Badger.Tests
 
             Log.Fail("Failed step");
 
-            Assert.Equal(1, Log.FailCount);
+            Log.FailCount.Should().Be(1);
         }
         
     }

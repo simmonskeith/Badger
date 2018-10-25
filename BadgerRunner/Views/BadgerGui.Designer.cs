@@ -80,7 +80,7 @@
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(484, 360);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(624, 360);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // tableLayoutPanel3
@@ -96,7 +96,7 @@
             this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel3.Size = new System.Drawing.Size(466, 94);
+            this.tableLayoutPanel3.Size = new System.Drawing.Size(606, 94);
             this.tableLayoutPanel3.TabIndex = 10;
             // 
             // label1
@@ -122,7 +122,7 @@
             this.lblTestPath.Location = new System.Drawing.Point(3, 26);
             this.lblTestPath.Margin = new System.Windows.Forms.Padding(3);
             this.lblTestPath.Name = "lblTestPath";
-            this.lblTestPath.Size = new System.Drawing.Size(460, 65);
+            this.lblTestPath.Size = new System.Drawing.Size(600, 65);
             this.lblTestPath.TabIndex = 6;
             this.lblTestPath.Text = "{lblTestPath}}";
             // 
@@ -140,7 +140,7 @@
             this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel4.Size = new System.Drawing.Size(466, 94);
+            this.tableLayoutPanel4.Size = new System.Drawing.Size(606, 94);
             this.tableLayoutPanel4.TabIndex = 11;
             // 
             // label2
@@ -166,7 +166,7 @@
             this.lblOutputPath.Location = new System.Drawing.Point(3, 26);
             this.lblOutputPath.Margin = new System.Windows.Forms.Padding(3);
             this.lblOutputPath.Name = "lblOutputPath";
-            this.lblOutputPath.Size = new System.Drawing.Size(460, 65);
+            this.lblOutputPath.Size = new System.Drawing.Size(600, 65);
             this.lblOutputPath.TabIndex = 7;
             this.lblOutputPath.Text = "{{lblOutputPath}}";
             // 
@@ -195,7 +195,7 @@
             this.tableLayoutPanel2.RowCount = 2;
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 60F));
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel2.Size = new System.Drawing.Size(466, 115);
+            this.tableLayoutPanel2.Size = new System.Drawing.Size(606, 115);
             this.tableLayoutPanel2.TabIndex = 9;
             // 
             // btnRun
@@ -205,7 +205,7 @@
             this.btnRun.FlatAppearance.BorderColor = System.Drawing.Color.SkyBlue;
             this.btnRun.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnRun.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnRun.Location = new System.Drawing.Point(173, 70);
+            this.btnRun.Location = new System.Drawing.Point(243, 70);
             this.btnRun.Margin = new System.Windows.Forms.Padding(3, 10, 3, 15);
             this.btnRun.Name = "btnRun";
             this.btnRun.Size = new System.Drawing.Size(120, 35);
@@ -222,7 +222,7 @@
             this.lblTestStatus.Location = new System.Drawing.Point(3, 15);
             this.lblTestStatus.Margin = new System.Windows.Forms.Padding(3, 15, 3, 15);
             this.lblTestStatus.Name = "lblTestStatus";
-            this.lblTestStatus.Size = new System.Drawing.Size(460, 30);
+            this.lblTestStatus.Size = new System.Drawing.Size(600, 30);
             this.lblTestStatus.TabIndex = 1;
             this.lblTestStatus.Text = "{{lblTestStatus}}";
             this.lblTestStatus.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -235,7 +235,7 @@
             this.toolStripMenuItem1});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(484, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(624, 24);
             this.menuStrip1.TabIndex = 1;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -326,7 +326,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Blue;
-            this.ClientSize = new System.Drawing.Size(484, 387);
+            this.ClientSize = new System.Drawing.Size(624, 387);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Controls.Add(this.menuStrip1);
             this.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));

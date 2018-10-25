@@ -127,6 +127,10 @@
       <Project>{4620f28b-7810-414a-a5ac-5229b282d315}</Project>
       <Name>Badger.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Faker\Faker.csproj">
+      <Project>{49b36ab0-01aa-411e-a2c5-ee4d5bf9cf71}</Project>
+      <Name>Faker</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Views\BadgerGUI.resx">
@@ -141,7 +145,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="badger.ico" />
-    <Content Include="Resources\AC.ico" />
     <Content Include="Resources\badger.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

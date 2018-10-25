@@ -10,6 +10,7 @@ using Badger.Runner;
 using NSubstitute;
 using Badger.Core.Interfaces;
 using System.Text.RegularExpressions;
+using FluentAssertions;
 
 namespace Badger.Tests
 {
@@ -33,7 +34,7 @@ namespace Badger.Tests
         public void TestService_WhenTestCaseIsLoaded_LoadsAssembly()
         {
             var service = GetTestService();
-            Assert.NotNull(service);
+            service.Should().NotBeNull();
         }
 
         [Fact]
@@ -41,7 +42,7 @@ namespace Badger.Tests
         {
             var service = new TestService(_fileReader);
             service.Init("", null);
-            Assert.Equal(5, TestService.GetStepMethods().Length);
+            TestService.GetStepMethods().Should().HaveCount(5);
         }
 
         [Fact]
@@ -50,7 +51,7 @@ namespace Badger.Tests
             var service = new TestService(_fileReader);
             service.Init("", null);
             var method = TestService.GetStepMethod("This is step #2");
-            Assert.NotNull(method);
+            method.Should().NotBeNull();
         }
 
         [Fact]
@@ -66,7 +67,7 @@ namespace Badger.Tests
             service.CallTestStepMethod(new TestStep() { Keyword = "I am the first step" });
             mockWriter.Received(1).WriteLine(@"c:\temp\log.txt", Arg.Is<string>(x=>
                 new Regex($"^\\[.*\\] LOG: This is the first step$").IsMatch(x)));
-            Assert.Equal(0, Log.FailCount);
+            Log.FailCount.Should().Be(0);
         }
 
         [Fact]
@@ -84,7 +85,7 @@ namespace Badger.Tests
                 Inputs = new Dictionary<string, string>() { { "MyValue", "AC" } } });
             mockWriter.Received(1).WriteLine(@"c:\temp\log.txt", Arg.Is<string>(x=>
                 new Regex($"^\\[.*\\] LOG: First value is AC$").IsMatch(x)));
-            Assert.Equal(0, Log.FailCount);
+            Log.FailCount.Should().Be(0);
         }
 
         [Fact]

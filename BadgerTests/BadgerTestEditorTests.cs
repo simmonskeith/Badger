@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using System.Xml.Linq;
 using Xunit;
 using NSubstitute;
+using FluentAssertions;
 
 namespace Badger.Tests
 {
@@ -44,8 +45,8 @@ namespace Badger.Tests
             _presenter.FilePath = path;
             _presenter.ShowView();
 
-            Assert.False(_view.SaveEnabled);
-            Assert.False(_view.AddStepEnabled);
+            _view.SaveEnabled.Should().BeFalse();
+            _view.AddStepEnabled.Should().BeFalse();
             Assert.Equal(!String.IsNullOrEmpty(path), _view.SaveAsEnabled);
         }
 
@@ -81,7 +82,8 @@ namespace Badger.Tests
             _view.AddTreeNode(Arg.Any<string>()).Returns(new TreeNode());
             _presenter.ShowView();
             _fileService.Received(String.IsNullOrEmpty(path) ? 0 : 2).GetLines(path);
-            Assert.True(_view.TestCaseLines.Count() == (String.IsNullOrEmpty(path) ? 0 : 3));
+            _view.TestCaseLines.Should().HaveCount(String.IsNullOrEmpty(path) ? 0 : 3);
+            
         }
         
         [Fact]
@@ -94,8 +96,8 @@ namespace Badger.Tests
             _view.OnSaveClick += Raise.EventWith(null, EventArgs.Empty);
 
             _fileService.Received(1).WriteLines(_presenter.FilePath, _view.TestCaseLines, false);
-            Assert.True(_view.SaveAsEnabled);
-            Assert.False(_view.SaveEnabled);
+            _view.SaveAsEnabled.Should().BeTrue();
+            _view.SaveEnabled.Should().BeFalse();
 
         }
         
@@ -112,7 +114,7 @@ namespace Badger.Tests
 
             _view.OnSaveAsClick += Raise.EventWith(null, EventArgs.Empty);
             _fileService.Received(cancel ? 0 : 1).WriteLines(_presenter.FilePath, _view.TestCaseLines, false);
-            Assert.Equal(cancel ? "MyFile.txt" : "NewTestFile.txt", _presenter.FilePath);
+            _presenter.FilePath.Should().Be(cancel ? "MyFile.txt" : "NewTestFile.txt");
         }
         
         [Theory]
@@ -137,8 +139,8 @@ namespace Badger.Tests
 
             _view.OnTestCaseTextChanged += Raise.EventWith(null, EventArgs.Empty);
 
-            Assert.True(_view.SaveEnabled);
-            Assert.True(_view.SaveAsEnabled);
+            _view.SaveEnabled.Should().BeTrue();
+            _view.SaveAsEnabled.Should().BeTrue();
         }
 
         [Fact]
@@ -147,7 +149,7 @@ namespace Badger.Tests
             var root = DefaultSetup();
             _presenter.ShowView();
 
-            Assert.True(root.Nodes.Count == 1);
+            root.Nodes.Should().HaveCount(1);
         }
 
         [Fact]

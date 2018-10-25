@@ -10,6 +10,7 @@ using Badger.Runner.Interfaces;
 using Badger.Runner.Presenters;
 using Xunit;
 using NSubstitute;
+using FluentAssertions;
 
 namespace Badger.Tests
 {
@@ -40,8 +41,8 @@ namespace Badger.Tests
             int okDialogCalls = string.IsNullOrEmpty(url) ? 1 : 0;
             _presenter.Url = url;
             _presenter.ShowView();
-            Assert.False(_mockView.BackButtonEnabled);
-            Assert.False(_mockView.ForwardButtonEnabled);
+            _mockView.BackButtonEnabled.Should().BeFalse();
+            _mockView.ForwardButtonEnabled.Should().BeFalse();
             _mockOKDialog.Received(okDialogCalls).Show(Arg.Any<string>(), Arg.Any<string>(), MessageBoxButtons.OK);
         }
 
@@ -54,8 +55,8 @@ namespace Badger.Tests
 
             _mockView.CanGoBackChanged += Raise.EventWith(null, EventArgs.Empty);
 
-            Assert.True(_mockView.BackButtonEnabled);
-            Assert.False(_mockView.ForwardButtonEnabled);
+            _mockView.BackButtonEnabled.Should().BeTrue();
+            _mockView.ForwardButtonEnabled.Should().BeFalse();
         }
         
         [Fact]
@@ -66,8 +67,8 @@ namespace Badger.Tests
 
             _mockView.CanGoForwardChanged += Raise.EventWith(null, EventArgs.Empty);
 
-            Assert.False(_mockView.BackButtonEnabled);
-            Assert.True(_mockView.ForwardButtonEnabled);
+            _mockView.BackButtonEnabled.Should().BeFalse();
+            _mockView.ForwardButtonEnabled.Should().BeTrue();
         }
         
     }

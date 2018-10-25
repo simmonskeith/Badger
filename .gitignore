@@ -11,4 +11,5 @@
 *.suo
 /bin
 /packages
+/.vs/
 

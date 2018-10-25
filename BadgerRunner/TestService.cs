@@ -25,6 +25,8 @@ namespace Badger.Runner
         private List<CustomKeyword> _customSteps;
         private List<DataSet> _dataSets;
 
+        private static readonly string inlineParameterRegex = @"""([\w\s\-\#\$\%\^\@\.\!\&\*\{\}\/\:\;\?]+)""";
+
         public TestService(IFileService fileService)
         {
             _fileService = fileService;
@@ -50,7 +52,7 @@ namespace Badger.Runner
             
             _testFileReader.LoadFile(path);
             _assembly = Assembly.Load(_testFileReader.GetLibraryName());
-            testVariables.Concat(_testFileReader.GetVariables());
+            testVariables.Concat(_testFileReader.GetVariables()).ToDictionary(x => x.Key, x => x.Value);
             _setups = _testFileReader.GetSetup();
             _testSteps = _testFileReader.GetTestSteps();
             _teardowns = _testFileReader.GetTeardown();
@@ -60,17 +62,39 @@ namespace Badger.Runner
             // insert the variables into the datastore to be accessed by steps
             foreach(var pair in testVariables)
             {
-                DataStore.Add(pair.Key, pair.Value);
+                var converted = ConvertVariableTokensToValues(pair.Value);
+                DataStore.Add(pair.Key, converted);
             }
 
 
             // confirm all the required steps are defined
             var allSteps = GetAvailableTestSteps();
             allSteps.AddRange(_customSteps.Select(k => k.Keyword));
+            allSteps = allSteps.Select(s => Regex.Replace(s, inlineParameterRegex, "'*'")).ToList();
 
-            var missingSteps = _setups.Where(s => allSteps.Contains(s.Keyword) == false).ToList();
-            missingSteps.AddRange(_teardowns.Where(s => allSteps.Contains(s.Keyword) == false).ToList());
-            missingSteps.AddRange(_testSteps.Where(s => allSteps.Contains(s.Keyword) == false).ToList());
+            var missingSteps = _setups.Select(t =>
+            {
+                return new TestStep()
+                {
+                    Keyword = Regex.Replace(t.Keyword, inlineParameterRegex, "'*'")
+                };
+            }).Where(s => allSteps.Contains(s.Keyword) == false).ToList();
+
+            missingSteps.AddRange(_teardowns.Select(t =>
+            {
+                return new TestStep()
+                {
+                    Keyword = Regex.Replace(t.Keyword, inlineParameterRegex, "'*'")
+                };
+            }).Where(s => allSteps.Contains(s.Keyword) == false).ToList());
+
+            missingSteps.AddRange(_testSteps.Select(t =>
+            {
+                return new TestStep()
+                {
+                    Keyword = Regex.Replace(t.Keyword, inlineParameterRegex, "'*'")
+                };
+            }).Where(s => allSteps.Contains(s.Keyword) == false).ToList());
 
             if (missingSteps.Count > 0)
             {
@@ -93,7 +117,6 @@ namespace Badger.Runner
         {
             if (_steps == null)
             {
-                var types = _assembly.GetTypes().Where(t => Attribute.IsDefined(t, typeof(StepsAttribute)));
                 _steps = _assembly.GetTypes().Where(t => Attribute.IsDefined(t, typeof(StepsAttribute)))
                     .SelectMany(c => c.GetMethods()
                     .Where(m => Attribute.IsDefined(m, typeof(StepAttribute)))).ToArray();
@@ -103,7 +126,20 @@ namespace Badger.Runner
 
         public static MethodInfo GetStepMethod(string step)
         {
-            return GetStepMethods().FirstOrDefault(m => m.GetCustomAttribute<StepAttribute>().Text == step);
+            var methods = GetStepMethods();
+            var theMethod = methods.FirstOrDefault(m => m.GetCustomAttribute<StepAttribute>().Text == step);
+            if (theMethod == null)
+            {
+                // try steps that use the "Do something with <var1>"
+                theMethod = methods.FirstOrDefault(m =>
+                {
+                    var nameTemplate = Regex.Replace(m.GetCustomAttribute<StepAttribute>().Text, inlineParameterRegex, "''");
+                    var stepTemplate = Regex.Replace(step, inlineParameterRegex, "''");
+                    return nameTemplate == stepTemplate;
+                });
+
+            }
+            return theMethod;
         }
 
         public void CallTestStepMethod(TestStep step)
@@ -121,8 +157,9 @@ namespace Badger.Runner
                     // a dictionary.
                     if (arg.ParameterType == typeof(Dictionary<string, string>))
                     {
+                        var expectedNames = expectedArgs.Select(a => a.Name).ToList();
                         var d = new Dictionary<string, string>();
-                        foreach (var input in step.Inputs)
+                        foreach (var input in step.Inputs.Where(i => !expectedNames.Contains(i.Key)))
                         {
                             d[input.Key] = input.Value;
                         }
@@ -131,11 +168,31 @@ namespace Badger.Runner
                     else
                     {
                         // locate all parameters whose name matches an argument in the method paramter list.
+                        // could either be using the step name followed by parameters, or inline parameters in step name
+
+                        var inLineParamNames = Regex.Matches(method.GetCustomAttribute<StepAttribute>().Text, inlineParameterRegex);
+
                         var matchingParams = step.Inputs.Where(n => n.Key == arg.Name);
 
                         if (matchingParams.Count() > 0)
                         {
                             suppliedArgs.Insert(arg.Position, Convert.ChangeType(matchingParams.First().Value, arg.ParameterType));
+                        }
+                        else if (inLineParamNames.Count > 0)
+                        {
+                            // get the values from the step keyword passed via test file
+                            var inLineValueMatches = Regex.Matches(step.Keyword, inlineParameterRegex);
+                            for (var n = 0; n < inLineParamNames.Count; n++)
+                            {
+                                // only want the second group
+                                if (inLineParamNames[n].Groups[1].Value == arg.Name)
+                                {
+                                    // inline parameters haven't gone through the substitution for variables, so do it now
+                                    var value = ConvertVariableTokensToValues(inLineValueMatches[n].Groups[1].Value);
+                                    suppliedArgs.Insert(arg.Position, Convert.ChangeType(value, arg.ParameterType));
+                                    break;
+                                }
+                            }
                         }
                         else
                         {
@@ -164,31 +221,84 @@ namespace Badger.Runner
         {
             foreach (var input in step.Inputs.ToList())
             {
-                var value = input.Value;
-                var matches = new Regex(@"\$\{(.+?)\}").Matches(value);
-                if (matches.Count > 0)
-                {
-                    foreach (Match match in matches)
-                    {
-                        string variableName = match.Groups[1].Value;
+                step.Inputs[input.Key] = ConvertVariableTokensToValues(input.Value);
+            }
+        }
 
-                        if (variableName.Contains("DATETIME."))
+        /// <summary>
+        /// Substitute variable reference tokens for the actual value.
+        /// </summary>
+        /// <param name="value">The parameter value string, with tokens.</param>
+        /// <returns></returns>
+        private string ConvertVariableTokensToValues(string value)
+        {
+            /*
+             * Steps may have one or more parameters that reference a variable using the ${ } syntax.
+             * Also, the parameter may include multiple instances of ${ } substitutions.
+             */
+            var matches = new Regex(@"\$\{(.+?)\}").Matches(value);
+            if (matches.Count > 0)
+            {
+                foreach (Match match in matches)
+                {
+                    string theVariable = match.Groups[1].Value;
+
+                    if (theVariable.Contains("DATE_TIME."))
+                    {
+                        theVariable = theVariable.Replace("DATE_TIME.", "arg.");
+                        var tmpMethod = EvalProvider.CreateEvalMethod<DateTime, string>(@"return " + theVariable + ";");
+                        value = value.Replace(match.Captures[0].Value, tmpMethod(timeStamp));
+                    }
+                    else if (theVariable.Contains("RANDOM_FIRST_NAME"))
+                    {
+                        value = value.Replace(match.Captures[0].Value, Faker.Name.FirstName());
+                    }
+                    else if (theVariable.Contains("RANDOM_LAST_NAME"))
+                    {
+                        value = value.Replace(match.Captures[0].Value, Faker.Name.LastName());
+                    }
+                    else if (theVariable.Contains("RANDOM_MALE_NAME"))
+                    {
+                        value = value.Replace(match.Captures[0].Value, Faker.Name.MaleFirstName());
+                    }
+                    else if (theVariable.Contains("RANDOM_FEMALE_NAME"))
+                    {
+                        value = value.Replace(match.Captures[0].Value, Faker.Name.FemaleFirstName());
+                    }
+                    else if (theVariable.Contains("RANDOM_NUMBER["))
+                    {
+                        // random number with bounds
+                        var rangeMatch = new Regex(@".\[(\d)+,\s*(\d)+\].").Match(theVariable);
+                        if (rangeMatch.Success)
                         {
-                            variableName = variableName.Replace("DATETIME.", "arg.");
-                            var tmpMethod = EvalProvider.CreateEvalMethod<DateTime, string>(@"return " + variableName + ";");
-                            step.Inputs[input.Key] = value.Replace(match.Captures[0].Value, tmpMethod(timeStamp));
-                        }
-                        else if (DataStore.Contains(variableName))
-                        {
-                            step.Inputs[input.Key] = value.Replace(match.Captures[0].Value, DataStore.Get(variableName));
+                            value = value.Replace(match.Captures[0].Value,
+                                Faker.Number.RandomNumber(int.Parse(rangeMatch.Groups[1].Value), int.Parse(rangeMatch.Groups[2].Value)).ToString());
                         }
                         else
                         {
-                            Console.WriteLine($"Unable to convert parameter {input.Key} using value {input.Value}");
+                            Console.WriteLine($"Unable to convert parameter value {value}");
                         }
+                    }
+                    else if (theVariable.Contains("RANDOM_NUMBER"))
+                    {
+                        value = value.Replace(match.Captures[0].Value, Faker.Number.RandomNumber().ToString());
+                    }
+                    else if (theVariable.Contains("GUID"))
+                    {
+                        value = value.Replace(match.Captures[0].Value, Guid.NewGuid().ToString());
+                    }
+                    else if (DataStore.Contains(theVariable))
+                    {
+                        value = value.Replace(match.Captures[0].Value, DataStore.Get(theVariable));
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Unable to convert parameter value {value}");
                     }
                 }
             }
+            return value;
+
         }
 
         public bool RunSetup()
@@ -209,11 +319,19 @@ namespace Badger.Runner
         private bool RunSteps(List<TestStep> steps)
         {
             bool result = true;
-
+            bool skipRemainingSteps = false;
             foreach (var step in steps)
             {
                 try
                 {
+                    var inLineValueMatches = Regex.Matches(step.Keyword, inlineParameterRegex);
+                    for (var n = 0; n < inLineValueMatches.Count; n++)
+                    {
+                        // replace the variable with a value for better reporting
+                        var value = ConvertVariableTokensToValues(inLineValueMatches[n].Groups[1].Value);
+                        step.Keyword = step.Keyword.Replace(inLineValueMatches[n].Groups[1].Value, value);
+                    }
+
                     string stepName = step.Keyword;
                     if (step.IsSetup)
                     {
@@ -224,33 +342,47 @@ namespace Badger.Runner
                         stepName = "[Teardown] " + stepName;
                     }
 
-                    
+
                     // sub in paramters to the step
                     MergeDataSetIntoTestStep(step);
                     SubstituteVariables(step);
 
-                    Log.StartTestStep(stepName, step.Inputs);
-
-                    // if the step is a custom step defined in the test case or resource files, run all
-                    // the nested steps.
-                    var customStep = _customSteps.FirstOrDefault(c => c.Keyword == step.Keyword);
-                    if (customStep != null)
+                    if (skipRemainingSteps && !step.IsTeardown)
                     {
-                        for (var j=0; j<customStep.Steps.Count; j++)
-                        {
-                            MergeDataSetIntoTestStep(customStep.Steps[j]);
-                            SubstituteKeywordArguments(step, customStep.Steps[j]);
-                            SubstituteVariables(customStep.Steps[j]);
-                            CallTestStepMethod(customStep.Steps[j]);
-                        }
+                        continue;
                     }
                     else
                     {
-                        CallTestStepMethod(step);
-                    }
+                        Log.StartTestStep(stepName, step.Inputs);
 
-                    Log.EndTestStep(stepName);
-                    result &= Log.FailCount == 0;
+                        // if the step is a custom step defined in the test case or resource files, run all
+                        // the nested steps.
+                        var customStep = _customSteps.FirstOrDefault(c => c.Keyword == step.Keyword);
+                        if (customStep != null)
+                        {
+                            for (var j = 0; j < customStep.Steps.Count; j++)
+                            {
+                                MergeDataSetIntoTestStep(customStep.Steps[j]);
+                                SubstituteKeywordArguments(step, customStep.Steps[j]);
+                                SubstituteVariables(customStep.Steps[j]);
+                                CallTestStepMethod(customStep.Steps[j]);
+                            }
+                        }
+                        else
+                        {
+                            CallTestStepMethod(step);
+                        }
+
+                        Log.EndTestStep(stepName);
+                        result &= Log.FailCount == 0;
+
+                        // if the step failed, and it's flagged as a StopOnError, or it's a setup step, skip remaining
+                        // regular steps, and only run teardown.
+                        if (result == false && (IsStopOnErrorStep(step) || step.IsSetup))
+                        {
+                            skipRemainingSteps = true;
+                        }
+                    }
                 }
                 catch (Exception e)
                 {
@@ -263,6 +395,12 @@ namespace Badger.Runner
                 }
             }
             return result;
+        }
+
+        private bool IsStopOnErrorStep(TestStep step)
+        {
+            var method = GetStepMethod(step.Keyword);
+            return method.GetCustomAttribute<StopOnFailAttribute>() != null;
         }
 
         private void RunCustomStep(TestStep step)

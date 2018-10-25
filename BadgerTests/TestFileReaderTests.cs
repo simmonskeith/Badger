@@ -7,6 +7,7 @@ using Xunit;
 using Badger.Runner;
 using Badger.Core.Interfaces;
 using NSubstitute;
+using FluentAssertions;
 
 namespace Badger.Tests
 {
@@ -53,7 +54,7 @@ namespace Badger.Tests
               "*** Setup ***",
               "Start application",
               "Login",
-              "    user    keith",
+              "    user    Frodo",
               "    password tralfaz",
               "",
               "*** Teardown ***",
@@ -63,7 +64,7 @@ namespace Badger.Tests
               "Do something that takes no inputs",
               "# This is a comment, it will be ignored.",
               "Do something that needs inputs",
-              "    Input1    ksimmons ",
+              "    Input1    walla walla ",
               "... additional for Input1",
               "    Input2    12345",
               "Do one more thing",
@@ -79,7 +80,7 @@ namespace Badger.Tests
         {
             TestFileReader testReader = new TestFileReader(fileService);
             testReader.LoadFile("my test");
-            Assert.Equal("BadgerTests.dll", testReader.GetLibraryName());
+            testReader.GetLibraryName().Should().Be("BadgerTests.dll");
         }
 
         [Fact]
@@ -93,7 +94,7 @@ namespace Badger.Tests
 
             testReader.LoadFile("my test");
 
-            Assert.Null(testReader.GetLibraryName());
+            testReader.GetLibraryName().Should().BeNull();
         }
 
         [Fact]
@@ -103,11 +104,11 @@ namespace Badger.Tests
             testReader.LoadFile("my test");
             var variables = testReader.GetVariables();
 
-            Assert.NotEmpty(variables);
-            Assert.Equal("${Faker.CreateTimeStamp(\"yyyyMMdd\")}", variables["timestamp"]);
-            Assert.Equal("Chewbacca", variables["user"]);
-            Assert.Equal("", variables["itsBlank"]);
-            Assert.Equal("first line second line third line", variables["multiline"]);
+            variables.Should().NotBeEmpty();
+            variables["timestamp"].Should().Be("${Faker.CreateTimeStamp(\"yyyyMMdd\")}");
+            variables["user"].Should().Be("Chewbacca");
+            variables["itsBlank"].Should().BeEmpty();
+            variables["multiline"].Should().Be("first line second line third line");
         }
 
         [Fact]
@@ -118,9 +119,9 @@ namespace Badger.Tests
 
             var setup = testReader.GetSetup();
 
-            Assert.Equal(2, setup.Count);
-            Assert.True(0 == setup[0].Inputs.Count);
-            Assert.Equal(2, setup[1].Inputs.Count);
+            setup.Should().HaveCount(2);
+            setup[0].Inputs.Should().HaveCount(0);
+            setup[1].Inputs.Should().HaveCount(2);
         }
 
         [Fact]
@@ -131,10 +132,9 @@ namespace Badger.Tests
 
             var teardown = testReader.GetTeardown();
 
-            Assert.True(1 == teardown.Count);
-            Assert.True(0 == teardown[0].Inputs.Count);
+            teardown.Should().HaveCount(1);
+            teardown[0].Inputs.Should().HaveCount(0);
         }
-
 
         [Fact]
         public void TestFileReader_FileHasStepsNotHavingInputs_StepsShouldBeLoaded()
@@ -145,8 +145,8 @@ namespace Badger.Tests
             var steps = testReader.GetTestSteps();
 
             // steps 1 and 3 do not have inputs
-            Assert.True(0 == steps[0].Inputs.Count);
-            Assert.True(0 == steps[2].Inputs.Count);
+            steps[0].Inputs.Should().HaveCount(0);
+            steps[2].Inputs.Should().HaveCount(0);
         }
 
         [Fact]
@@ -158,14 +158,14 @@ namespace Badger.Tests
             var steps = testReader.GetTestSteps();
 
             // steps 2 has inputs
-            Assert.Equal("Do something that needs inputs", steps[1].Keyword);
-            Assert.Equal(2, steps[1].Inputs.Count);
-            Assert.Equal("ksimmons additional for Input1", steps[1].Inputs["Input1"]);
-            Assert.Equal("12345", steps[1].Inputs["Input2"]);
-            Assert.Equal("Another step with inputs", steps[3].Keyword);
-            Assert.Equal(2, steps[3].Inputs.Count);
-            Assert.Equal("${timestamp}", steps[3].Inputs["variable"]);
-            Assert.Equal("", steps[3].Inputs["BlankValue"]);
+            steps[1].Keyword.Should().Be("Do something that needs inputs");
+            steps[1].Inputs.Should().HaveCount(2);
+            steps[1].Inputs["Input1"].Should().Be("walla walla additional for Input1");
+            steps[1].Inputs["Input2"].Should().Be("12345");
+            steps[3].Keyword.Should().Be("Another step with inputs");
+            steps[3].Inputs.Should().HaveCount(2);
+            steps[3].Inputs["variable"].Should().Be("${timestamp}");
+            steps[3].Inputs["BlankValue"].Should().BeEmpty();
         }
 
         [Fact]
@@ -183,31 +183,39 @@ namespace Badger.Tests
 
             var steps = testReader.GetTestSteps();
 
-            Assert.True(0 == steps.Count);
+            steps.Should().HaveCount(0);
         }
 
         [Fact]
         public void TestFileReader_LoadsFileWithCustomKeywords_ParsesCustomKeywords()
         {
             TestFileReader testReader = new TestFileReader(fileService);
+
             testReader.LoadFile("my test");
             var keywords = testReader.GetKeywords();
-            Assert.Equal(2, keywords.Count);
-            Assert.Equal("Start and login", keywords[0].Keyword);
-            Assert.Equal("user", keywords[0].Inputs[0]);
-            Assert.Equal("password", keywords[0].Inputs[1]);
 
-            Assert.Equal("Start app", keywords.First(k=>k.Keyword == "Start and login").Steps[0].Keyword);
-            Assert.True(0 == keywords.First(k => k.Keyword == "Start and login").Steps.First(s=>s.Keyword == "Start app").Inputs.Count);
-            Assert.Equal("Login", keywords.First(k => k.Keyword == "Start and login").Steps[1].Keyword);
-            Assert.Equal(2, keywords.First(k => k.Keyword == "Start and login").Steps.First(s => s.Keyword == "Login").Inputs.Count);
-            Assert.Equal("${user}", keywords[0].Steps[1].Inputs["user"]);
-            Assert.Equal("${password}", keywords[0].Steps[1].Inputs["password"]);
+            keywords.Should().HaveCount(2);
+            keywords[0].Keyword.Should().Be("Start and login");
+            keywords[0].Inputs[0].Should().Be("user");
+            keywords[0].Inputs[1].Should().Be("password");
 
-            Assert.Equal("Close app", keywords[1].Keyword);
-            Assert.Equal(2, keywords.First(k=>k.Keyword == "Close app").Steps.Count);
-            Assert.Equal("Exit", keywords.First(k => k.Keyword == "Close app").Steps[1].Keyword);
-            Assert.True(0 == keywords.First(k=>k.Keyword == "Close app").Steps.First(s=>s.Keyword == "Exit").Inputs.Count);
+            keywords.First(k => k.Keyword == "Start and login").Steps[0].Keyword.Should().Be("Start app");
+            keywords.First(k => k.Keyword == "Start and login")
+                .Steps.First(s => s.Keyword == "Start app")
+                .Inputs.Should().HaveCount(0);
+            keywords.First(k => k.Keyword == "Start and login").Steps[1].Keyword.Should().Be("Login");
+            keywords.First(k => k.Keyword == "Start and login")
+                .Steps.First(s => s.Keyword == "Login")
+                .Inputs.Should().HaveCount(2);
+            keywords[0].Steps[1].Inputs["user"].Should().Be("${user}");
+            keywords[0].Steps[1].Inputs["password"].Should().Be("${password}");
+
+            keywords[1].Keyword.Should().Be("Close app");
+            keywords.First(k => k.Keyword == "Close app").Steps.Should().HaveCount(2);
+            keywords.First(k => k.Keyword == "Close app").Steps[1].Keyword.Should().Be("Exit");
+            keywords.First(k => k.Keyword == "Close app")
+                .Steps.First(s => s.Keyword == "Exit")
+                .Inputs.Should().HaveCount(0);
         }
 
         [Fact]
@@ -216,15 +224,14 @@ namespace Badger.Tests
             TestFileReader testReader = new TestFileReader(fileService);
             testReader.LoadFile("my test");
             var dataSets = testReader.GetDataSets();
-            Assert.Equal(2, dataSets.Count);
-            Assert.Equal("Numero Uno", dataSets[0].Name);
-            Assert.Equal("Hammerhead", dataSets[0].Inputs["a"]);
-            Assert.Equal("Mako", dataSets[0].Inputs["b"]);
-
-            Assert.Equal("El Segundo", dataSets[1].Name);
-            Assert.Equal("Orange", dataSets[1].Inputs["x"]);
-            Assert.Equal("Red", dataSets[1].Inputs["y"]);
-            Assert.Equal("Green", dataSets[1].Inputs["z"]);
+            dataSets.Should().HaveCount(2);
+            dataSets[0].Name.Should().Be("Numero Uno");
+            dataSets[0].Inputs["a"].Should().Be("Hammerhead");
+            dataSets[0].Inputs["b"].Should().Be("Mako");
+            dataSets[1].Name.Should().Be("El Segundo");
+            dataSets[1].Inputs["x"].Should().Be("Orange");
+            dataSets[1].Inputs["y"].Should().Be("Red");
+            dataSets[1].Inputs["z"].Should().Be("Green");
         }
     }
 }

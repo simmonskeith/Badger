@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using FluentAssertions;
 
 namespace Badger.Tests
 {
@@ -63,32 +64,36 @@ namespace Badger.Tests
         [Fact]
         public void BadgerGuiRunner_OnLoad_DisplaysDefaultState()
         {
-            _view.NewTestEnabled.Returns(true);
-            _view.EditTestEnabled.Returns(true);
+            _view.NewTestMenuItemEnabled.Returns(true);
+            _view.EditTestMenuItemEnabled.Returns(true);
+
             _view.OnFormLoad += Raise.EventWith(null, EventArgs.Empty);
 
-            Assert.Equal(_view.RunButtonEnabled, !String.IsNullOrEmpty(_view.TestPath));
-            Assert.False(_view.ViewOutputButtonEnabled);
-            Assert.False(_view.ViewReportButtonEnabled);
-            Assert.True(_view.NewTestEnabled);
-            Assert.Equal(_view.EditTestEnabled, !String.IsNullOrEmpty(_view.TestPath));
-            Assert.False(_view.ResourceFileLabelVisible);
+            bool isTestSelected = !String.IsNullOrEmpty(_view.TestPath);
+            bool isResourceFileSelected = !string.IsNullOrEmpty(presenter.ResourcePath);
+            _view.RunButtonEnabled.Should().Be(isTestSelected);
+            _view.EditTestMenuItemEnabled.Should().Be(isTestSelected);
+            _view.ViewOutputMenuItemEnabled.Should().BeFalse();
+            _view.ViewReportMenuItemEnabled.Should().BeFalse();
+            _view.NewTestMenuItemEnabled.Should().BeTrue();
+            _view.ResourceFileLabelVisible.Should().Be(isResourceFileSelected);
+
         }
         
         [Theory]
-        [InlineData("", false)]
-        [InlineData(null, false)]
-        [InlineData("c:\\myResourceFile.txt", true)]
-        public void BadgerGuiRunner_Displays_ResourceFile(string filename, bool isVisible)
+        [InlineData("")]
+        [InlineData(null)]
+        [InlineData("c:\\myResourceFile.txt")]
+        public void BadgerGuiRunner_DisplaysResourceFile_IfFilePathIsDefined(string filename)
         {
             presenter = InitPresenter(filename);
-            var expectedText = String.IsNullOrEmpty(filename) ? null : $"Resource File: {filename}";
-
+            var resourcePath = string.IsNullOrEmpty(filename) ? presenter.ResourcePath : filename;
+            var expectedText = String.IsNullOrEmpty(resourcePath) ? "" : $"Resource File: {resourcePath}";
             _view.OnFormLoad += Raise.EventWith(null, EventArgs.Empty);
 
             _view.Received(1).ResourceFileText = expectedText;
-            _view.Received(1).ResourceFileLabelVisible = isVisible;
-            Assert.Equal(expectedText, _view.ResourceFileText);
+            _view.Received(1).ResourceFileLabelVisible = !String.IsNullOrEmpty(expectedText);
+            _view.ResourceFileText.Should().Be(expectedText);
         }
         
         [Theory]
@@ -98,18 +103,20 @@ namespace Badger.Tests
         [InlineData("c:\\myFile.txt", false)]
         public void BadgerGuiRunner_Selects_ResourceFile(string originalPath, bool cancel)
         {
+            var initialPath = string.IsNullOrEmpty(originalPath) ? presenter.ResourcePath : originalPath;
             presenter = InitPresenter(originalPath);
-            var expected = cancel ? (String.IsNullOrEmpty(originalPath) ? null : $"Resource File: {originalPath}") :
-                "Resource File: C:\\newFile.txt";
+            var resourcePath = cancel ? initialPath : "C:\\newFile.txt";
+            var expectedText = String.IsNullOrEmpty(resourcePath) ? "" : $"Resource File: {resourcePath}";
             _fileService.FileExists(Arg.Any<string>()).Returns(true);
             _fileBrowser.ShowDialog().Returns(!cancel);
             _fileBrowser.FileName.Returns("C:\\newFile.txt");
             _view.OnFormLoad += Raise.EventWith(null, EventArgs.Empty);
+            _view.ClearReceivedCalls();
 
             _view.OnSelectResourceFile += Raise.EventWith(null, EventArgs.Empty);
 
-            _view.Received(1).ResourceFileText = expected;
-            Assert.Equal(expected, _view.ResourceFileText);
+            _view.Received(cancel ? 0 : 1).ResourceFileText = expectedText;
+            expectedText.Should().Be(_view.ResourceFileText);
 
         }
         
@@ -121,9 +128,9 @@ namespace Badger.Tests
         {
             string newPath = @"c:\temp\tests\newtest.txt";
             _view.TestPath.Returns(initialPath);
-            _view.ViewOutputButtonEnabled.Returns(true);
-            _view.ViewReportButtonEnabled.Returns(true);
-            _view.EditTestEnabled.Returns(false);
+            _view.ViewOutputMenuItemEnabled.Returns(true);
+            _view.ViewReportMenuItemEnabled.Returns(true);
+            _view.EditTestMenuItemEnabled.Returns(false);
             _view.TestStatusText.Returns("PASS");
             _view.TestStatusBackColor.Returns(System.Drawing.Color.Green);
             _fileService.FileExists(initialPath).Returns(isFile);
@@ -146,11 +153,11 @@ namespace Badger.Tests
             _fileBrowser.Received(1).InitialDirectory = initialPath;
             _view.Received(1).TestPath = newPath;
 
-            Assert.False(_view.ViewReportButtonEnabled);
-            Assert.False(_view.ViewOutputButtonEnabled);
-            Assert.Equal("No Results", _view.TestStatusText);
-            Assert.True(_view.EditTestEnabled);
-            Assert.Equal(System.Drawing.Color.SkyBlue, _view.TestStatusBackColor);
+            _view.ViewReportMenuItemEnabled.Should().BeFalse();
+            _view.ViewOutputMenuItemEnabled.Should().BeFalse();
+            _view.TestStatusText.Should().Be("No Results");
+            _view.EditTestMenuItemEnabled.Should().BeTrue();
+            _view.TestStatusBackColor.Should().Be(System.Drawing.Color.SkyBlue);
         }
         
         [Fact]
@@ -158,8 +165,8 @@ namespace Badger.Tests
         {
             string testPath = @"c:\temp\tests\mytest.txt";
             _view.TestPath.Returns(testPath);
-            _view.ViewOutputButtonEnabled.Returns(true);
-            _view.ViewReportButtonEnabled.Returns(true);
+            _view.ViewOutputMenuItemEnabled.Returns(true);
+            _view.ViewReportMenuItemEnabled.Returns(true);
             _view.TestStatusText.Returns("PASS");
             _view.TestStatusBackColor.Returns(System.Drawing.Color.Green);
             _fileService.FileExists(testPath).Returns(true);
@@ -168,10 +175,10 @@ namespace Badger.Tests
             _view.OnSelectTestFile += Raise.EventWith(null, EventArgs.Empty);
             _view.DidNotReceive().TestPath = Arg.Any<string>();
 
-            Assert.True(_view.ViewOutputButtonEnabled);
-            Assert.True(_view.ViewReportButtonEnabled);
-            Assert.Equal("PASS", _view.TestStatusText);
-            Assert.Equal(System.Drawing.Color.Green, _view.TestStatusBackColor);
+            _view.ViewOutputMenuItemEnabled.Should().BeTrue();
+            _view.ViewReportMenuItemEnabled.Should().BeTrue();
+            _view.TestStatusText.Should().Be("PASS");
+            _view.TestStatusBackColor.Should().Be(System.Drawing.Color.Green);
         }
         
         [Theory]
@@ -181,10 +188,10 @@ namespace Badger.Tests
         public void BadgerGuiRunner_ClickBrowseTestFolder_BrowsesCurrentTestFolder(string path, bool isFile)
         {
             _view.TestPath.Returns(path);
-            _view.ViewOutputButtonEnabled.Returns(true);
-            _view.ViewReportButtonEnabled.Returns(true);
+            _view.ViewOutputMenuItemEnabled.Returns(true);
+            _view.ViewReportMenuItemEnabled.Returns(true);
             _view.TestStatusText.Returns("PASS");
-            _view.EditTestEnabled.Returns(isFile);
+            _view.EditTestMenuItemEnabled.Returns(isFile);
             _view.TestStatusBackColor.Returns(System.Drawing.Color.Green);
             _fileService.FileExists(path).Returns(isFile);
             _folderBrowser.SelectedPath.Returns("intial path");
@@ -200,11 +207,11 @@ namespace Badger.Tests
             _folderBrowser.Received(1).ShowDialog();
             _view.Received(1).TestPath = isFile ? System.IO.Path.GetDirectoryName(path) : path;
 
-            Assert.False(_view.ViewReportButtonEnabled);
-            Assert.False(_view.ViewOutputButtonEnabled);
-            Assert.False(_view.EditTestEnabled);
-            Assert.Equal("No Results", _view.TestStatusText);
-            Assert.Equal(System.Drawing.Color.SkyBlue, _view.TestStatusBackColor);
+            _view.ViewReportMenuItemEnabled.Should().BeFalse();
+            _view.ViewOutputMenuItemEnabled.Should().BeFalse();
+            _view.EditTestMenuItemEnabled.Should().BeFalse();
+            _view.TestStatusText.Should().Be("No Results");
+            _view.TestStatusBackColor.Should().Be(System.Drawing.Color.SkyBlue);
 
         }
         
@@ -213,8 +220,8 @@ namespace Badger.Tests
         {
             string testPath = @"c:\temp\tests";
             _view.TestPath.Returns(testPath);
-            _view.ViewOutputButtonEnabled.Returns(true);
-            _view.ViewReportButtonEnabled.Returns(true);
+            _view.ViewOutputMenuItemEnabled.Returns(true);
+            _view.ViewReportMenuItemEnabled.Returns(true);
             _view.TestStatusText.Returns("PASS");
             _view.TestStatusBackColor.Returns(System.Drawing.Color.Green);
             _fileService.FileExists(testPath).Returns(true);
@@ -223,10 +230,10 @@ namespace Badger.Tests
             _view.OnSelectTestFolder += Raise.EventWith(null, EventArgs.Empty);
             _view.DidNotReceive().TestPath=Arg.Any<string>();
 
-            Assert.True(_view.ViewOutputButtonEnabled);
-            Assert.True(_view.ViewReportButtonEnabled);
-            Assert.Equal("PASS", _view.TestStatusText);
-            Assert.Equal(System.Drawing.Color.Green, _view.TestStatusBackColor);
+            _view.ViewOutputMenuItemEnabled.Should().BeTrue();
+            _view.ViewReportMenuItemEnabled.Should().BeTrue();
+            _view.TestStatusText.Should().Be("PASS");
+            _view.TestStatusBackColor.Should().Be(System.Drawing.Color.Green);
         }
         
         [Theory]
@@ -235,8 +242,8 @@ namespace Badger.Tests
         public void BadgerGuiRunner_ClickOutputBrowse_BrowsesCurrentOutputFolder(string path)
         {
             _view.OutputPath.Returns(path);
-            _view.ViewOutputButtonEnabled.Returns(true);
-            _view.ViewReportButtonEnabled.Returns(true);
+            _view.ViewOutputMenuItemEnabled.Returns(true);
+            _view.ViewReportMenuItemEnabled.Returns(true);
             _folderBrowser.ShowDialog().Returns(true);
 
             // when no path is specified, use the current directory
@@ -250,8 +257,8 @@ namespace Badger.Tests
             _folderBrowser.Received(1).ShowDialog();
             _view.Received(1).OutputPath = path;
 
-            Assert.False(_view.ViewReportButtonEnabled);
-            Assert.False(_view.ViewOutputButtonEnabled);
+            _view.ViewReportMenuItemEnabled.Should().BeFalse();
+            _view.ViewOutputMenuItemEnabled.Should().BeFalse();
         }
         
         [Fact]
@@ -259,16 +266,16 @@ namespace Badger.Tests
         {
             string outPath = @"c:\temp\output";
             _view.OutputPath.Returns(outPath);
-            _view.ViewOutputButtonEnabled.Returns(true);
-            _view.ViewReportButtonEnabled.Returns(true);
+            _view.ViewOutputMenuItemEnabled.Returns(true);
+            _view.ViewReportMenuItemEnabled.Returns(true);
             _fileService.FileExists(outPath).Returns(true);
             _folderBrowser.ShowDialog().Returns(false);
 
             _view.OnSelectOutputFolder += Raise.EventWith(null, EventArgs.Empty);
             _view.DidNotReceive().OutputPath = Arg.Any<string>();
 
-            Assert.True(_view.ViewOutputButtonEnabled);
-            Assert.True(_view.ViewReportButtonEnabled);
+            _view.ViewOutputMenuItemEnabled.Should().BeTrue();
+            _view.ViewReportMenuItemEnabled.Should().BeTrue();
         }
         
         [Fact]

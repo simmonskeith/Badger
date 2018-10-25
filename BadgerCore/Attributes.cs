@@ -29,4 +29,10 @@ namespace Badger.Core
             this.Text = text;
         }
     }
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public class StopOnFailAttribute : System.Attribute
+    {
+
+    }
 }

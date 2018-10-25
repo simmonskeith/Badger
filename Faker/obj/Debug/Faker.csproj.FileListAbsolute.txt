@@ -1,0 +1,6 @@
+C:\Automation\Badger\Faker\bin\Debug\Faker.dll
+C:\Automation\Badger\Faker\bin\Debug\Faker.pdb
+C:\Automation\Badger\Faker\obj\Debug\Faker.csprojAssemblyReference.cache
+C:\Automation\Badger\Faker\obj\Debug\Faker.csproj.CoreCompileInputs.cache
+C:\Automation\Badger\Faker\obj\Debug\Faker.dll
+C:\Automation\Badger\Faker\obj\Debug\Faker.pdb

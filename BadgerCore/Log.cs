@@ -101,6 +101,7 @@ namespace Badger.Core
         private static Stopwatch _stopwatch;
         private static string _timeFormat = "yyyy-MM-dd HH:mm:ss.fff";
         private static string _path;
+        private static Action<string> _screenshotDelegate;
 
         public static void Init(IFileService fileService, string path, string testName)
         {
@@ -123,7 +124,7 @@ namespace Badger.Core
             _startTime = DateTime.Now;
             _stopwatch = new Stopwatch();
             _stopwatch.Start();
-            PostToLog($"Starting test '{testName}'");
+            PostToLog(string.Empty, $"Starting test '{testName}'");
         }
 
         public static void Close()
@@ -131,22 +132,33 @@ namespace Badger.Core
             var result = FailCount == 0 ? "PASS" : "FAIL";
             if (FailCount > 0)
             {
-                PostToLog($"Result: {result} [{FailCount}]");
+                PostToLog(string.Empty, $"Result: {result} [{FailCount}]");
             }
             else
             {
-                PostToLog($"Result: {result}");
+                PostToLog(string.Empty, $"Result: {result}");
             }
             Console.WriteLine("\n");
             CreateHtmlReport();
         }
 
-        public static void StartTestStep(string name, Dictionary<string,string> inputs)
+        public static void SetScreenShotDelegate(Action<string> screenshotDelegate)
+        {
+            _screenshotDelegate = screenshotDelegate;
+        }
+
+            public static void StartTestStep(string name, Dictionary<string,string> inputs)
         {
             _testStepResult = new TestStepResult();
             _testStepResult.Name = name;
             // list the parameters and values (in html only?)
             Log.Message($"Starting step '{name}'");
+            if (inputs.Count > 0)
+            {
+                string inputList = "";
+                inputs.ToList().ForEach(kv => inputList += $"{kv.Key}='{kv.Value}'");
+                Log.Message($"Inputs: {inputList}");
+            }
         }
 
         public static void EndTestStep(string name)
@@ -164,7 +176,7 @@ namespace Badger.Core
                 Message = message
             };
             _testStepResult.Add(result);
-            PostToLog($"[{result.Timestamp}] LOG: {message}");
+            PostToLog("LOG", $"[{result.Timestamp}] LOG: {message}");
         }
 
         public static void Pass(string message)
@@ -176,7 +188,7 @@ namespace Badger.Core
                 Message = message
             };
             _testStepResult.Add(result);
-            PostToLog($"[{result.Timestamp}] PASS: {message}");
+            PostToLog("PASS", $"[{result.Timestamp}] PASS: {message}");
         }
 
         public static void Fail(string message)
@@ -191,8 +203,19 @@ namespace Badger.Core
             };
             _testStepResult.Add(result);
 
-            PostToLog($"[{result.Timestamp}] FAIL: {message} [{screenshot}]");
+            PostToLog("FAIL", $"[{result.Timestamp}] FAIL: {message} [{screenshot}]");
             FailCount += 1;
+        }
+
+        /// <summary>
+        /// Logs a failure with exception details.
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="e"></param>
+        public static void Exception(string message, Exception e)
+        {
+            // this is just a wrapper for logging a failure, but with the special Exception parameter
+            Log.Fail($"{message}  Message: {e.Message}, Stack Trace: {e.StackTrace}");
         }
 
         private static string TimeStamp()
@@ -200,9 +223,47 @@ namespace Badger.Core
             return DateTime.Now.ToString(_timeFormat);
         }
 
-        private static void PostToLog(string message)
+        private static void PostToLog(string level, string message)
         {
+            try
+            {
+                ConsoleColor color;
+                switch (level)
+                {
+                    case "PASS":
+                        color = ConsoleColor.Green;
+                        break;
+                    case "FAIL":
+                        color = ConsoleColor.Red;
+                        break;
+                    case "ERROR":
+                        color = ConsoleColor.DarkYellow;
+                        break;
+                    case "WARN":
+                        color = ConsoleColor.Yellow;
+                        break;
+                    default:
+                        color = ConsoleColor.Gray;
+                        break;
+                }
+                Console.ForegroundColor = color;
+            }
+            catch (Exception e)
+            {
+                _fileService.WriteConsole(e + Environment.NewLine);
+            }
+
             _fileService.WriteConsole(message + Environment.NewLine);
+
+            try
+            {
+                Console.ResetColor();
+            }
+            catch (Exception e)
+            {
+                _fileService.WriteConsole(e + Environment.NewLine);
+            }
+
             _fileService.WriteLine(_logPath, message);
         }
 
@@ -214,26 +275,16 @@ namespace Badger.Core
                 Directory.CreateDirectory(_screenshotPath);
             }
             string screenshotPath = Path.Combine(_screenshotPath, filename);
-            CaptureScreenShot(screenshotPath);
+            if (_screenshotDelegate != null)
+            {
+                _screenshotDelegate(screenshotPath);
+            }
+            else
+            {
+                ScreenCapture.CaptureScreenShot(_fileService, screenshotPath);
+            }
             _screenshotIndex += 1;
             return filename;
-        }
-
-        /// <summary>
-        /// Captures the entire screen as a screenshot
-        /// </summary>
-        /// <param name="filename"></param>
-        private static void CaptureScreenShot(String filename)
-        {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(bounds.Width, bounds.Height))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(Point.Empty, Point.Empty, bounds.Size);
-                }
-                _fileService.SaveImage(filename, bitmap, ImageFormat.Png);
-            }
         }
 
         public static void CreateHtmlReport()
@@ -343,6 +394,33 @@ namespace Badger.Core
                 new XElement("td", new XAttribute("class", "summary_key"), _testCaseResult.TotalFail)));
 
             _fileService.SaveHtmlDocument(_reportPath, doc);
+        }
+    }
+
+    public static class ScreenCapture
+    {
+        /// <summary>
+        /// Captures the entire screen as a screenshot
+        /// </summary>
+        /// <param name="filename"></param>
+        public static void CaptureScreenShot(IFileService fileService, String filename)
+        {
+            Rectangle bounds = Screen.GetBounds(Point.Empty);
+            using (Bitmap bitmap = new Bitmap(bounds.Width, bounds.Height))
+            {
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    try
+                    {
+                        g.CopyFromScreen(Point.Empty, Point.Empty, bounds.Size);
+                    }
+                    catch(System.ComponentModel.Win32Exception)
+                    {
+                        // throws exception when screen can't be captured (like when it's locked)
+                    }
+                }
+                fileService.SaveImage(filename, bitmap, ImageFormat.Png);
+            }
         }
     }
 }

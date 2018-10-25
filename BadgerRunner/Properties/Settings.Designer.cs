@@ -46,5 +46,17 @@ namespace Badger.Runner.Properties {
                 this["OutputPath"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string ResourcePath {
+            get {
+                return ((string)(this["ResourcePath"]));
+            }
+            set {
+                this["ResourcePath"] = value;
+            }
+        }
     }
 }

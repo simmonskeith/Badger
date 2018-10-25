@@ -17,13 +17,13 @@ namespace Badger.Runner.Interfaces
         Color TestStatusBackColor { get; set; }
 
         bool RunButtonEnabled { get; set; }
-        bool ViewOutputButtonEnabled { get; set; }
-        bool ViewReportButtonEnabled { get; set; }
+        bool ViewOutputMenuItemEnabled { get; set; }
+        bool ViewReportMenuItemEnabled { get; set; }
         bool SelectFileEnabled { get; set; }
         bool SelectTestFolderEnabled { get; set; }
         bool SelectOutputFolderEnabled { get; set; }
-        bool NewTestEnabled { get; set; }
-        bool EditTestEnabled { get; set; }
+        bool NewTestMenuItemEnabled { get; set; }
+        bool EditTestMenuItemEnabled { get; set; }
         bool ResourceFileLabelVisible { get; set; }
 
         bool ShowDialog();

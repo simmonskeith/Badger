@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Xunit;
 using System.Xml.Linq;
 using NSubstitute;
+using FluentAssertions;
 
 namespace Badger.Tests
 {
@@ -76,7 +77,7 @@ namespace Badger.Tests
             _fileService.Received(1).CreateFolder(@"c:\results\Results\Test A");
             _fileService.Received(1).CreateFolder(@"c:\results\Results\Test B");
             _fileService.Received(4).SaveHtmlDocument(@"c:\results\Results\summary.html", Arg.Any<XDocument>());
-            Assert.True(result);
+            result.Should().BeTrue();
         }
         
         [Fact]
@@ -106,7 +107,7 @@ namespace Badger.Tests
 
             _fileService.Received(1).CreateFolder(@"c:\results\Results\Test A");
             _fileService.Received(1).CreateFolder(@"c:\results\Results\Test B");
-            Assert.False(result);
+            result.Should().BeFalse();
         }
         
         [Fact]
@@ -121,7 +122,7 @@ namespace Badger.Tests
  
             //_testManager.Verify(t => t.RunTest(It.IsAny<string>()), Times.Never);
             _fileService.DidNotReceive().SaveHtmlDocument(Arg.Any<string>(), Arg.Any<XDocument>());
-            Assert.True(result);
+            result.Should().BeTrue();
         }
         
         private XDocument MakeSummaryHtml()

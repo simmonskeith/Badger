@@ -42,13 +42,13 @@ namespace Badger.Runner.Views
             set { btnRun.Enabled = value; }
         }
 
-        public bool ViewOutputButtonEnabled
+        public bool ViewOutputMenuItemEnabled
         {
             get { return viewOutputToolStripMenuItem.Enabled; }
             set { viewOutputToolStripMenuItem.Enabled = value; }
         }
 
-        public bool ViewReportButtonEnabled
+        public bool ViewReportMenuItemEnabled
         {
             get { return viewReportToolStripMenuItem.Enabled; }
             set { viewReportToolStripMenuItem.Enabled = value; }
@@ -72,13 +72,13 @@ namespace Badger.Runner.Views
             set { selectOutputFolderToolStripMenuItem.Enabled = value; }
         }
 
-        public bool NewTestEnabled
+        public bool NewTestMenuItemEnabled
         {
             get { return newTestToolStripMenuItem.Enabled; }
             set { newTestToolStripMenuItem.Enabled = value; }
         }
 
-        public bool EditTestEnabled
+        public bool EditTestMenuItemEnabled
         {
             get { return editTestToolStripMenuItem.Enabled; }
             set { editTestToolStripMenuItem.Enabled = value; }

@@ -41,6 +41,10 @@
     <Reference Include="Castle.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
       <HintPath>..\packages\Castle.Core.4.2.1\lib\net45\Castle.Core.dll</HintPath>
     </Reference>
+    <Reference Include="FluentAssertions, Version=5.4.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
+      <HintPath>..\packages\FluentAssertions.5.4.0\lib\net45\FluentAssertions.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="NSubstitute, Version=3.1.0.0, Culture=neutral, PublicKeyToken=92dd2e9066daa5ca, processorArchitecture=MSIL">
       <HintPath>..\packages\NSubstitute.3.1.0\lib\net46\NSubstitute.dll</HintPath>
     </Reference>
@@ -113,6 +117,10 @@
     <ProjectReference Include="..\BadgerRunner\Badger.Runner.csproj">
       <Project>{fb64b3d9-f710-4ecb-8f99-2229b058d70d}</Project>
       <Name>Badger.Runner</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Faker\Faker.csproj">
+      <Project>{49b36ab0-01aa-411e-a2c5-ee4d5bf9cf71}</Project>
+      <Name>Faker</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

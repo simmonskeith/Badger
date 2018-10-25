@@ -92,24 +92,37 @@ namespace Badger.Runner.Presenters
         public string ResourcePath
         {
             get { return _resourcePath; }
-            set { _resourcePath = value; }
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    _resourcePath = Properties.Settings.Default.ResourcePath;
+                }
+                else
+                {
+                    _resourcePath = value;
+                    Properties.Settings.Default.ResourcePath = value;
+                    Properties.Settings.Default.Save();
+                }
+            }
         }
 
         private void ViewOnFormLoad(object sender, EventArgs e)
         {
             _view.TestPath = Properties.Settings.Default.TestPath;
             _view.OutputPath = Properties.Settings.Default.OutputPath;
+
             _view.RunButtonEnabled = false;
-            _view.EditTestEnabled = false;
-            _view.ViewReportButtonEnabled = false;
-            _view.ViewOutputButtonEnabled = false;
+            _view.EditTestMenuItemEnabled = false;
+            _view.ViewReportMenuItemEnabled = false;
+            _view.ViewOutputMenuItemEnabled = false;
             _view.TestStatusText = MSG_NOT_RUN;
             _view.TestStatusBackColor = COLOR_NOT_RUN;
             _view.TestStatusForeColor = COLOR_CONTROL_TEXT;
             if (String.IsNullOrEmpty(_view.TestPath) == false)
             {
                 _view.RunButtonEnabled = true;
-                _view.EditTestEnabled = !_fileService.IsDirectory(_view.TestPath);
+                _view.EditTestMenuItemEnabled = !_fileService.IsDirectory(_view.TestPath);
             }
 
             UpdateResourceFileLabel();
@@ -137,7 +150,7 @@ namespace Badger.Runner.Presenters
             if (_fileBrowser.ShowDialog())
             {
                 UpdateTestPath(_fileBrowser.FileName);
-                _view.EditTestEnabled = true;
+                _view.EditTestMenuItemEnabled = true;
                 if (String.IsNullOrEmpty(_view.OutputPath))
                 {
                     UpdateOutputPath(Environment.CurrentDirectory);
@@ -149,23 +162,31 @@ namespace Badger.Runner.Presenters
         private void ViewOnSelectResourceFile(object sender, EventArgs e)
         {
             _fileBrowser.InitialDirectory = Environment.CurrentDirectory;
-            if (!String.IsNullOrEmpty(_resourcePath) && _fileService.FileExists(_resourcePath))
+            if (!String.IsNullOrEmpty(ResourcePath) && _fileService.FileExists(ResourcePath))
             {
-                _fileBrowser.InitialDirectory = System.IO.Path.GetDirectoryName(_resourcePath);
+                _fileBrowser.InitialDirectory = System.IO.Path.GetDirectoryName(ResourcePath);
  
             }
 
             if (_fileBrowser.ShowDialog())
             {
-                _resourcePath = _fileBrowser.FileName;
+                ResourcePath = _fileBrowser.FileName;
                 UpdateResourceFileLabel();
             }
         }
 
         private void UpdateResourceFileLabel()
         {
-            _view.ResourceFileText = string.IsNullOrEmpty(_resourcePath) ? null : $"Resource File: {_resourcePath}";
-            _view.ResourceFileLabelVisible = !string.IsNullOrEmpty(_resourcePath);
+            if (string.IsNullOrEmpty(ResourcePath))
+            {
+                _view.ResourceFileText = "";
+                _view.ResourceFileLabelVisible = false;
+            }
+            else
+            {
+                _view.ResourceFileText = $"Resource File: {ResourcePath}";
+                _view.ResourceFileLabelVisible = true;
+            }
         }
 
         private void ViewOnSelectTestFolder(object sender, EventArgs e)
@@ -195,7 +216,7 @@ namespace Badger.Runner.Presenters
             if (_folderBrowser.ShowDialog())
             {
                 UpdateTestPath(_folderBrowser.SelectedPath);
-                _view.EditTestEnabled = false;
+                _view.EditTestMenuItemEnabled = false;
                 // with test path selected, if an output path hasn't been set, use current directory.
                 if (String.IsNullOrEmpty(_view.OutputPath))
                 {
@@ -242,8 +263,8 @@ namespace Badger.Runner.Presenters
 
         private async void ViewOnRun(object sender, EventArgs e)
         {
-            _view.ViewOutputButtonEnabled = false;
-            _view.ViewReportButtonEnabled = false;
+            _view.ViewOutputMenuItemEnabled = false;
+            _view.ViewReportMenuItemEnabled = false;
             _view.RunButtonEnabled = false;
             _view.SelectTestFolderEnabled = false;
             _view.SelectOutputFolderEnabled = false;
@@ -257,8 +278,8 @@ namespace Badger.Runner.Presenters
             _view.TestStatusText = result ? MSG_PASS : MSG_FAIL;
             _view.TestStatusBackColor = result ? COLOR_PASS : COLOR_FAIL;
             _view.TestStatusForeColor = COLOR_CONTROL_TEXT;
-            _view.ViewOutputButtonEnabled = true;
-            _view.ViewReportButtonEnabled = true;
+            _view.ViewOutputMenuItemEnabled = true;
+            _view.ViewReportMenuItemEnabled = true;
             _view.RunButtonEnabled = true;
             _view.SelectFileEnabled = true;
             _view.SelectOutputFolderEnabled = true;
@@ -269,7 +290,7 @@ namespace Badger.Runner.Presenters
         private Task<bool> RunTest()
         {
             var runner = new TestRunner(new TestService(_fileService), _fileService);
-            return Task.Run<bool>(() => runner.RunTests(_view.TestPath, _view.OutputPath, _resourcePath));
+            return Task.Run<bool>(() => runner.RunTests(_view.TestPath, _view.OutputPath, ResourcePath));
         }
 
         private void UpdateControlsAfterFilePathChange(bool includeRunButton)
@@ -281,8 +302,8 @@ namespace Badger.Runner.Presenters
             {
                 _view.RunButtonEnabled = true;
             }
-            _view.ViewOutputButtonEnabled = false;
-            _view.ViewReportButtonEnabled = false;
+            _view.ViewOutputMenuItemEnabled = false;
+            _view.ViewReportMenuItemEnabled = false;
         }
 
         private void ViewOnViewOutput(object sender, EventArgs e)

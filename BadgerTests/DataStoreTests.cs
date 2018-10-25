@@ -1,4 +1,5 @@
 ﻿using Badger.Core;
+using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +17,7 @@ namespace Badger.Tests
         public void DataStore_Initialize_CreatesEmptyStore()
         {
             DataStore.Initialize();
-            Assert.Equal(0, DataStore.Count);
+            DataStore.Count.Should().Be(0);
         }
 
         [Fact]
@@ -24,15 +25,15 @@ namespace Badger.Tests
         {
             DataStore.Initialize();
             DataStore.Add("myKey", "something i need to store");
-            Assert.Equal(1, DataStore.Count);
-            Assert.Equal("something i need to store", DataStore.Get("myKey"));
+            DataStore.Count.Should().Be(1);
+            DataStore.Get("myKey").Should().Be("something i need to store");
         }
         [Fact]
         public void DataStore_Retrieve_RetrievesString()
         {
             DataStore.Initialize();
             DataStore.Add("myKey", "my string to store");
-            Assert.Equal("my string to store", DataStore.Get("myKey"));
+            DataStore.Get("myKey").Should().Be("my string to store");
         }
 
         [Fact]
@@ -41,7 +42,7 @@ namespace Badger.Tests
             DataStore.Initialize();
             var myObject = new List<string>() { "Buzz", "Lightyear" };
             DataStore.Add("myKey", myObject);
-            Assert.Equal(1, DataStore.Count);
+            DataStore.Count.Should().Be(1);
         }
 
         [Fact]
@@ -50,7 +51,7 @@ namespace Badger.Tests
             DataStore.Initialize();
             var myObject = new List<string>() { "Buzz", "Lightyear" };
             DataStore.Add("myKey", myObject);
-            Assert.Equal("Lightyear", DataStore.Get<List<string>>("myKey")[1]);
+            DataStore.Get<List<string>>("myKey")[1].Should().Be("Lightyear");
         }
 
         [Fact]
@@ -59,7 +60,7 @@ namespace Badger.Tests
             DataStore.Initialize();
             DataStore.Add("myKey", "something i need to store");
             DataStore.Remove("myKey");
-            Assert.Equal(0, DataStore.Count);
+            DataStore.Count.Should().Be(0);
         }
 
 
