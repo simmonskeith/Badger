@@ -45,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes.cs" />
+    <Compile Include="DatabaseQuery.cs" />
     <Compile Include="DataStore.cs" />
     <Compile Include="FileService.cs" />
     <Compile Include="Interfaces\IFileService.cs" />

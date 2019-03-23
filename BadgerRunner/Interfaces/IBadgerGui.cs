@@ -13,6 +13,8 @@ namespace Badger.Runner.Interfaces
         string OutputPath { get; set; }
         string TestStatusText { get; set; }
         string ResourceFileText { get; set; }
+        string TagsText { get; set; }
+        string ExcludeTagsText { get; set; }
         Color TestStatusForeColor { get; set; }
         Color TestStatusBackColor { get; set; }
 

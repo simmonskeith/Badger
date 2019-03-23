@@ -52,7 +52,7 @@ namespace Badger.Runner
             
             _testFileReader.LoadFile(path);
             _assembly = Assembly.Load(_testFileReader.GetLibraryName());
-            testVariables.Concat(_testFileReader.GetVariables()).ToDictionary(x => x.Key, x => x.Value);
+            testVariables = testVariables.Concat(_testFileReader.GetVariables()).ToDictionary(x => x.Key, x => x.Value);
             _setups = _testFileReader.GetSetup();
             _testSteps = _testFileReader.GetTestSteps();
             _teardowns = _testFileReader.GetTeardown();
@@ -353,6 +353,7 @@ namespace Badger.Runner
                     }
                     else
                     {
+                        var priorFailCount = Log.FailCount;
                         Log.StartTestStep(stepName, step.Inputs);
 
                         // if the step is a custom step defined in the test case or resource files, run all
@@ -374,7 +375,9 @@ namespace Badger.Runner
                         }
 
                         Log.EndTestStep(stepName);
-                        result &= Log.FailCount == 0;
+
+                        // other steps may have failed, just need to know if this one generated failures
+                        result &= Log.FailCount == priorFailCount;
 
                         // if the step failed, and it's flagged as a StopOnError, or it's a setup step, skip remaining
                         // regular steps, and only run teardown.

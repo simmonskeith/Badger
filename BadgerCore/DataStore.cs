@@ -24,7 +24,11 @@ namespace Badger.Core
 
         public static string Get(string key)
         {
-            return _store[key] as string;
+            if (Contains(key))
+            {
+                return _store[key] as string;
+            }
+            else return null;
         }
 
         public static void Add(string key, object value)

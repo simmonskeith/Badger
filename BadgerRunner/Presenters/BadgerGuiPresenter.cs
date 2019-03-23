@@ -124,8 +124,7 @@ namespace Badger.Runner.Presenters
                 _view.RunButtonEnabled = true;
                 _view.EditTestMenuItemEnabled = !_fileService.IsDirectory(_view.TestPath);
             }
-
-            UpdateResourceFileLabel();
+            _view.ResourceFileText = ResourcePath;
             
         }
 
@@ -171,21 +170,7 @@ namespace Badger.Runner.Presenters
             if (_fileBrowser.ShowDialog())
             {
                 ResourcePath = _fileBrowser.FileName;
-                UpdateResourceFileLabel();
-            }
-        }
-
-        private void UpdateResourceFileLabel()
-        {
-            if (string.IsNullOrEmpty(ResourcePath))
-            {
-                _view.ResourceFileText = "";
-                _view.ResourceFileLabelVisible = false;
-            }
-            else
-            {
-                _view.ResourceFileText = $"Resource File: {ResourcePath}";
-                _view.ResourceFileLabelVisible = true;
+                _view.ResourceFileText = ResourcePath;
             }
         }
 
@@ -290,7 +275,8 @@ namespace Badger.Runner.Presenters
         private Task<bool> RunTest()
         {
             var runner = new TestRunner(new TestService(_fileService), _fileService);
-            return Task.Run<bool>(() => runner.RunTests(_view.TestPath, _view.OutputPath, ResourcePath));
+            return Task.Run<bool>(() => runner.RunTests(_view.TestPath, _view.OutputPath, 
+                ResourcePath, _view.TagsText, _view.ExcludeTagsText));
         }
 
         private void UpdateControlsAfterFilePathChange(bool includeRunButton)

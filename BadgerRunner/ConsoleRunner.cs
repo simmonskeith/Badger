@@ -6,6 +6,7 @@ using CommandLine;
 using System;
 using System.Windows.Forms;
 using Autofac;
+using CommandLine.Text;
 
 namespace Badger.Runner
 {
@@ -19,13 +20,15 @@ namespace Badger.Runner
             {
                 string resourcePath = String.IsNullOrEmpty(options.ResourcePath) ? null : options.ResourcePath;
                 string outPath = String.IsNullOrEmpty(options.OutputPath) ? Environment.CurrentDirectory : options.OutputPath;
+                string tags = String.IsNullOrEmpty(options.Tags) ? null : options.Tags;
+                string excludeTags = String.IsNullOrEmpty(options.ExcludeTags) ? null : options.ExcludeTags;
 
                 if (!String.IsNullOrEmpty(options.TestPath))
                 {
                     string testPath = options.TestPath;
                     var fileService = new FileService();
                     var runner = new TestRunner(new TestService(fileService), fileService);
-                    bool result = runner.RunTests(testPath, outPath, resourcePath);
+                    bool result = runner.RunTests(testPath, outPath, resourcePath, tags, excludeTags);
                     return result ? 0 : 1;
 
                 }
@@ -72,6 +75,19 @@ namespace Badger.Runner
 
         [Option('r', "resource", HelpText = "Path to resoucre file")]
         public string ResourcePath { get; set; }
+
+        [Option('t', "tags", HelpText = "Tags")]
+        public string Tags { get; set; }
+
+        [Option('e', "exclude", HelpText = "Tags to exclude")]
+        public string ExcludeTags { get; set; }
+
+        [HelpOption]
+        public string GetUsage()
+        {
+            return HelpText.AutoBuild(this,
+              (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
+        }
     }
 
 }
