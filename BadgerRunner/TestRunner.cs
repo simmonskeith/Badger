@@ -28,11 +28,41 @@ namespace Badger.Runner
             _fileService = fileService;
         }
 
-        private List<string> GetTests(string path)
+        private List<string> GetTests(string path, string tags, string excludeTags)
         {
             if (_fileService.IsDirectory(path))
             {
-                return _fileService.GetFiles(path, "*.txt", System.IO.SearchOption.AllDirectories).ToList();
+                var possibleTests = _fileService.GetFiles(path, "*.txt", System.IO.SearchOption.AllDirectories).ToList();
+                // if tags are provided, need to check each file to ensure it contains all the provided tags.
+                if (string.IsNullOrEmpty(tags))
+                {
+                    return possibleTests;
+                }
+                var taglist = new List<string>();
+                if (tags != null)
+                {
+                    taglist = tags.Split(',').ToList().Select(t => t.Trim()).ToList();
+                }
+
+                var excludeTagList = new List<string>();
+                if (excludeTags != null)
+                {
+                    excludeTagList = excludeTags.Split(',').ToList().Select(t => t.Trim()).ToList();
+                }
+
+                var selectedTests = possibleTests.Where(t =>
+                {
+                    var reader = new TestFileReader(_fileService);
+                    reader.LoadFile(t);
+                    var fileTags = reader.GetTags();
+                    var matchedTags = taglist.Intersect(fileTags);
+                    if (excludeTagList.Intersect(fileTags).Count() > 0)
+                    {
+                        return false;
+                    }
+                    return matchedTags.Count() == taglist.Count();
+                }).ToList();
+                return selectedTests;
             }
             else
             {
@@ -40,12 +70,12 @@ namespace Badger.Runner
             }
         }
 
-        public bool RunTests(string testpath, string outpath, string resourcePath)
+        public bool RunTests(string testpath, string outpath, string resourcePath, string tags, string excludeTags)
         {
             bool result = true;
             var resultPath = Path.Combine(outpath, "Results");
 
-            var tests = GetTests(testpath);
+            var tests = GetTests(testpath, tags, excludeTags);
             if (tests.Count == 0)
             {
                 Console.WriteLine("No tests found.");
@@ -97,6 +127,7 @@ namespace Badger.Runner
 
                 if (false == _manager.Init(path, resourcePath))
                 {
+                    Log.FailCount += 1;
                     return false;
                 }
 
@@ -128,6 +159,7 @@ namespace Badger.Runner
         {
             var reportPath = Path.Combine(path, SUMMARY_FILENAME);
             _fileService.DeleteFolder(path, true);
+            System.Threading.Thread.Sleep(50);
             _fileService.CreateFolder(path);
 
             string reportCss = "summary.css";

@@ -32,8 +32,8 @@ namespace Badger.Runner.Views
 
         public string ResourceFileText
         {
-            get { return lblResourceFile.Text; }
-            set { lblResourceFile.Text = value; }
+            get { return txtConfigFile.Text; }
+            set { txtConfigFile.Text = value; }
         }
 
         public bool RunButtonEnabled
@@ -94,6 +94,18 @@ namespace Badger.Runner.Views
             }
         }
 
+        public string TagsText
+        {
+            get { return txtTags.Text; }
+            set { txtTags.Text = value; }
+        }
+
+        public string ExcludeTagsText
+        {
+            get { return txtExcludeTags.Text; }
+            set { txtExcludeTags.Text = value; }
+        }
+
         public Color TestStatusForeColor
         {
             get { return lblTestStatus.ForeColor; }
@@ -112,8 +124,8 @@ namespace Badger.Runner.Views
 
         public bool ResourceFileLabelVisible
         {
-            get { return lblResourceFile.Visible; }
-            set { lblResourceFile.Visible = value; }
+            get { return txtConfigFile.Visible; }
+            set { txtConfigFile.Visible = value; }
         }
 
         public new bool ShowDialog()

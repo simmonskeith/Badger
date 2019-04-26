@@ -8,6 +8,8 @@
 /BadgerRunner/bin/
 /BadgerTests/bin/
 /BadgerTests/obj/
+/Faker/bin/
+/Faker/obj/
 *.suo
 /bin
 /packages

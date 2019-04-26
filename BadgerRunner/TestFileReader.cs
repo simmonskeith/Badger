@@ -31,13 +31,12 @@ namespace Badger.Runner
 
         public string GetLibraryName()
         {
-            int start = _lines.IndexOf("*** Settings ***");
-            int end = _lines.FindIndex(start + 1, x=>x.StartsWith("*** "));
-            if (start < 0 || end < 0)
+            var section = GetSettingsSection();
+            if (section.Count() == 0)
             {
                 return null;
             }
-            string libLine = _lines.GetRange(start, end - start).First(x => x.Contains("Library    "));
+            string libLine = section.First(x => x.Contains("Library    "));
             if (libLine == null)
             {
                 return null;
@@ -48,6 +47,41 @@ namespace Badger.Runner
                 return null;
             }
             return result[1].Trim();
+        }
+
+        private List<string> GetSettingsSection()
+        {
+            int start = _lines.IndexOf("*** Settings ***");
+            int end = _lines.FindIndex(start + 1, x => x.StartsWith("*** "));
+            if (start < 0 || end < 0)
+            {
+                return new List<string>();
+            }
+            var settingsLines = _lines.GetRange(start, end - start);
+            return settingsLines;
+        }
+
+        public List<string> GetTags()
+        {
+            var tags = new List<string>();
+            var section = GetSettingsSection();
+            if (section.Count() == 0)
+            {
+                return tags;
+            }
+            string tagsLine = section.FirstOrDefault(x => x.Contains("Tags"));
+            if (tagsLine == null)
+            {
+                return tags;
+            }
+
+            var result = tagsLine.Split(new[] { "Tags" }, StringSplitOptions.None);
+            if (result.Length < 2)
+            {
+                return null;
+            }
+            tags = result[1].Split(',').ToList().Select(t => t.Trim()).ToList();
+            return tags;
         }
 
         public Dictionary<string, string> GetVariables()
