@@ -122,12 +122,6 @@ namespace Badger.Runner.Views
             }
         }
 
-        public bool ResourceFileLabelVisible
-        {
-            get { return txtConfigFile.Visible; }
-            set { txtConfigFile.Visible = value; }
-        }
-
         public new bool ShowDialog()
         {
             return base.ShowDialog() == DialogResult.OK;

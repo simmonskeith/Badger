@@ -42,7 +42,7 @@ namespace Badger.Tests
         {
             var service = new TestService(_fileReader);
             service.Init("", null);
-            TestService.GetStepMethods().Should().HaveCount(5);
+            TestService.GetStepMethods().Should().HaveCount(6);
         }
 
         [Fact]
@@ -52,6 +52,35 @@ namespace Badger.Tests
             service.Init("", null);
             var method = TestService.GetStepMethod("This is step #2");
             method.Should().NotBeNull();
+        }
+
+        [Fact]
+        public void TestService_GivenAnInlineParameterKeyword_RetrievesSpecifiedStepMethod()
+        {
+            var service = new TestService(_fileReader);
+            service.Init("", null);
+            var method = TestService.GetStepMethod("An inline \"myValue\" test step");
+            method.Should().NotBeNull();
+        }
+
+        [Fact]
+        public void TestService_GivenAnInlineKeyword_RunsAssociatedStepMethod()
+        {
+            var mockWriter = Substitute.For<IFileService>();
+            mockWriter.CreateFolder(Arg.Any<string>());
+            mockWriter.WriteLine(Arg.Any<string>(), Arg.Any<string>());
+
+            var service = GetTestService();
+            Log.Init(mockWriter, @"c:\temp", "Some Test");
+            Log.StartTestStep("my test step", new Dictionary<string, string>());
+            service.CallTestStepMethod(new TestStep()
+            {
+                Keyword = "An inline \"Some value 123 @#$%^!&\" test step",
+                Inputs = new Dictionary<string, string>() { }
+            });
+            mockWriter.Received(1).WriteLine(@"c:\temp\log.txt", Arg.Is<string>(x =>
+                new Regex($@"^\[.*\] LOG: Got 'Some value 123 @#\$%\^!&'$").IsMatch(x)));
+            Log.FailCount.Should().Be(0);
         }
 
         [Fact]
@@ -239,6 +268,12 @@ namespace Badger.Tests
         public void StepWithInputs(string a, string b)
         {
             Log.Message($"Got '{a}' and '{b}'");
+        }
+
+        [Step("An inline \"parameter\" test step")]
+        public void StepWithInlineParameter(string parameter)
+        {
+            Log.Message($"Got '{parameter}'");
         }
     }
 }

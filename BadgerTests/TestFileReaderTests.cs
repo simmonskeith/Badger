@@ -22,6 +22,7 @@ namespace Badger.Tests
             fileService.GetLines("my test").Returns(new List<string>()
             { "*** Settings ***",
               "Library    BadgerTests.dll",
+              "Tags    SmokeTest, NotOnStaging",
               "",
               "*** Variables ***",
               "timestamp    ${Faker.CreateTimeStamp(\"yyyyMMdd\")}",
@@ -98,7 +99,7 @@ namespace Badger.Tests
         }
 
         [Fact]
-        public void TestFileReaderShouldReadVaribles()
+        public void TestFileReader_ShouldLoadVaribles_WhenFileContainsSection()
         {
             TestFileReader testReader = new TestFileReader(fileService);
             testReader.LoadFile("my test");
@@ -232,6 +233,17 @@ namespace Badger.Tests
             dataSets[1].Inputs["x"].Should().Be("Orange");
             dataSets[1].Inputs["y"].Should().Be("Red");
             dataSets[1].Inputs["z"].Should().Be("Green");
+        }
+
+        [Fact]
+        public void TestFileReader_ParsesTags_WhenFileContainsTagsSetting()
+        {
+            TestFileReader testReader = new TestFileReader(fileService);
+            testReader.LoadFile("my test");
+            testReader.GetTags().Should().HaveCount(2);
+            testReader.GetTags().Should().Contain("NotOnStaging");
+            testReader.GetTags().Should().Contain("SmokeTest");
+
         }
     }
 }

@@ -38,7 +38,7 @@ namespace Badger.Tests
             _testManager.RunTestSteps().Returns(true);
             var runner = new TestRunner(_testManager, _fileService);
 
-            var result = runner.RunTests(@"c:\some directory\test folder", @"c:\results", null);
+            var result = runner.RunTests(@"c:\some directory\test folder", @"c:\results", null, null, null);
 
             // should save before test, after step, and then in closing the log.
             _fileService.Received(3).SaveHtmlDocument(@"c:\results\Results\summary.html", Arg.Any<XDocument>());
@@ -55,7 +55,7 @@ namespace Badger.Tests
             _testManager.Init("Test A.txt", null).Returns(true);
             var runner = new TestRunner(_testManager, _fileService);
 
-            var result = runner.RunTests(@"c:\some directory\test folder", @"c:\results", null);
+            var result = runner.RunTests(@"c:\some directory\test folder", @"c:\results", null, null, null);
 
             _fileService.Received(1).GetFiles(@"c:\some directory\test folder", "*.txt", System.IO.SearchOption.AllDirectories);
             _testManager.Received(1).RunTestSteps();
@@ -71,7 +71,7 @@ namespace Badger.Tests
             _testManager.RunTestSteps().Returns(true);
             var runner = new TestRunner(_testManager, _fileService);
 
-            var result = runner.RunTests(@"c:\some directory\test folder", @"c:\results", null);
+            var result = runner.RunTests(@"c:\some directory\test folder", @"c:\results", null, null, null);
 
             _fileService.Received(1).IsDirectory(@"c:\some directory\test folder");
             _fileService.Received(1).CreateFolder(@"c:\results\Results\Test A");
@@ -90,7 +90,7 @@ namespace Badger.Tests
             _testManager.Init("Test A.txt", null).Returns(false);
             var runner = new TestRunner(_testManager, _fileService);
 
-            var result = runner.RunTests(@"c:\some directory\test folder", @"c:\results", null);
+            var result = runner.RunTests(@"c:\some directory\test folder", @"c:\results", null, null, null);
 
             _testManager.DidNotReceive().RunTestSteps();
         }
@@ -103,7 +103,7 @@ namespace Badger.Tests
                 .Returns(new List<string>() { "Test A.txt", "Test B.txt" });
             var runner = new TestRunner(_testManager, _fileService);
 
-            var result = runner.RunTests(@"c:\some directory\test folder", @"c:\results", null);
+            var result = runner.RunTests(@"c:\some directory\test folder", @"c:\results", null, null, null);
 
             _fileService.Received(1).CreateFolder(@"c:\results\Results\Test A");
             _fileService.Received(1).CreateFolder(@"c:\results\Results\Test B");
@@ -118,7 +118,7 @@ namespace Badger.Tests
                 .Returns(new List<string>());
             var runner = new TestRunner(_testManager, _fileService);
 
-            var result = runner.RunTests(@"c:\some directory\test folder", @"c:\results", null);
+            var result = runner.RunTests(@"c:\some directory\test folder", @"c:\results", null, null, null);
  
             //_testManager.Verify(t => t.RunTest(It.IsAny<string>()), Times.Never);
             _fileService.DidNotReceive().SaveHtmlDocument(Arg.Any<string>(), Arg.Any<XDocument>());

@@ -26,7 +26,6 @@ namespace Badger.Runner.Interfaces
         bool SelectOutputFolderEnabled { get; set; }
         bool NewTestMenuItemEnabled { get; set; }
         bool EditTestMenuItemEnabled { get; set; }
-        bool ResourceFileLabelVisible { get; set; }
 
         bool ShowDialog();
 

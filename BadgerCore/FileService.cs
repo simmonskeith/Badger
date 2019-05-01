@@ -7,6 +7,7 @@ using System.Xml.Linq;
 using Badger.Core.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
+using ExcelDataReader;
 
 namespace Badger.Core
 {
@@ -109,12 +110,12 @@ namespace Badger.Core
 
         public bool IsDirectory(string path)
         {
-            return System.IO.Directory.Exists(path);
+            return Directory.Exists(path);
         }
 
         public List<string> GetFiles(string path, string pattern, SearchOption searchOption)
         {
-            return System.IO.Directory.GetFiles(path, pattern, searchOption).ToList();
+            return Directory.GetFiles(path, pattern, searchOption).ToList();
         }
 
         public List<string> GetLines(string path)
@@ -122,12 +123,75 @@ namespace Badger.Core
             var lines = new List<string>();
             try
             {
-                lines = File.ReadAllLines(path).ToList();
+                if (path.ToLowerInvariant().EndsWith("xlsx") || path.ToLowerInvariant().EndsWith("xls"))
+                {
+                    lines = ReadExcelLines(path);
+                }
+                else
+                {
+                    lines = File.ReadAllLines(path).ToList();
+                }
             }
             catch (Exception e)
             {
                 Console.WriteLine($"An error occurred while reading ${path}:  {e.Message}");
             }
+            return lines;
+        }
+
+        private List<string> ReadExcelLines(string path)
+        {
+            var lines = new List<string>();
+
+            using (var stream = File.Open(path, FileMode.Open, FileAccess.Read))
+            {
+                IExcelDataReader reader;
+                path = path.ToLowerInvariant();
+                if (Path.GetExtension(path).Equals(".xls"))
+                {
+                    reader = ExcelReaderFactory.CreateBinaryReader(stream);
+                }
+                else if (Path.GetExtension(path).Equals(".xlsx"))
+                {
+                    reader = ExcelReaderFactory.CreateOpenXmlReader(stream);
+                }
+                else
+                {
+                    throw new Exception("Invalid FileName");
+                }
+
+
+                while (reader.Read())
+                {
+                    var line = string.Empty;
+                    for (var i = 0; i < reader.FieldCount; i++)
+                    {
+                        string cell = string.Empty;
+                        var t = reader.GetFieldType(i);
+                        if (t == typeof(double))
+                        {
+                            cell = reader.GetDouble(i).ToString();
+                        }
+                        else
+                        {
+                            cell = reader.GetString(i);
+                        }
+
+                        if ((string.IsNullOrEmpty(cell) && i == 0) ||
+                            (line.StartsWith("    ") && i == 2))
+                        {
+                            line += "    ";
+                        }
+                        line += cell;
+                    }
+                    if (string.IsNullOrWhiteSpace(line))
+                    {
+                        line = string.Empty;
+                    }
+                    lines.Add(line);
+                }
+            }
+
             return lines;
         }
 

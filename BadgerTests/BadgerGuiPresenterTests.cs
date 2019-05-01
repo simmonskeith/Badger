@@ -76,7 +76,6 @@ namespace Badger.Tests
             _view.ViewOutputMenuItemEnabled.Should().BeFalse();
             _view.ViewReportMenuItemEnabled.Should().BeFalse();
             _view.NewTestMenuItemEnabled.Should().BeTrue();
-            _view.ResourceFileLabelVisible.Should().Be(isResourceFileSelected);
 
         }
         
@@ -88,11 +87,10 @@ namespace Badger.Tests
         {
             presenter = InitPresenter(filename);
             var resourcePath = string.IsNullOrEmpty(filename) ? presenter.ResourcePath : filename;
-            var expectedText = String.IsNullOrEmpty(resourcePath) ? "" : $"Resource File: {resourcePath}";
+            var expectedText = String.IsNullOrEmpty(resourcePath) ? "" : $"{resourcePath}";
             _view.OnFormLoad += Raise.EventWith(null, EventArgs.Empty);
 
             _view.Received(1).ResourceFileText = expectedText;
-            _view.Received(1).ResourceFileLabelVisible = !String.IsNullOrEmpty(expectedText);
             _view.ResourceFileText.Should().Be(expectedText);
         }
         
@@ -106,7 +104,7 @@ namespace Badger.Tests
             var initialPath = string.IsNullOrEmpty(originalPath) ? presenter.ResourcePath : originalPath;
             presenter = InitPresenter(originalPath);
             var resourcePath = cancel ? initialPath : "C:\\newFile.txt";
-            var expectedText = String.IsNullOrEmpty(resourcePath) ? "" : $"Resource File: {resourcePath}";
+            var expectedText = String.IsNullOrEmpty(resourcePath) ? "" : $"{resourcePath}";
             _fileService.FileExists(Arg.Any<string>()).Returns(true);
             _fileBrowser.ShowDialog().Returns(!cancel);
             _fileBrowser.FileName.Returns("C:\\newFile.txt");

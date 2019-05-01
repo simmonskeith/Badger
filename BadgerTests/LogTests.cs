@@ -59,17 +59,17 @@ namespace Badger.Tests
         public void Log_Fail_WritesFailMessage()
         {
             var expectedString = new Regex(timestampRegex + " FAIL: Failed step \\[screenshot_1.png\\]");
+            var func = Substitute.For<Action<string>>();
+            Log.SetScreenShotDelegate(func);
             Log.StartTestStep("some step", new Dictionary<string, string>());
 
             Log.Fail("Failed step");
 
-            _fileService.Received(1).WriteLine(Path.Combine(_logpath, "log.txt"), Arg.Is<string>(s=> expectedString.IsMatch(s)));
-            _fileService.Received(1).SaveImage(Path.Combine(_logpath, "screenshots", "screenshot_1.png"), 
-                Arg.Any<System.Drawing.Bitmap>(), 
-                Arg.Any<System.Drawing.Imaging.ImageFormat>());
-            _fileService.Received(1).WriteConsole(Arg.Is<string>(s=>expectedString.IsMatch(s)));
+            _fileService.Received(1).WriteLine(Path.Combine(_logpath, "log.txt"), Arg.Is<string>(s => expectedString.IsMatch(s)));
+            func.Received(1);
+            _fileService.Received(1).WriteConsole(Arg.Is<string>(s => expectedString.IsMatch(s)));
         }
-        
+
         [Fact]
         public void Log_Close_DisplaysFailCount()
         {
@@ -90,6 +90,24 @@ namespace Badger.Tests
 
             Log.FailCount.Should().Be(1);
         }
-        
+
+        [Fact]
+        public void Log_SetScreenshotDelegate_SetsDelegateFunction()
+        {
+            var func = Substitute.For<Action<string>>();
+            Log.SetScreenShotDelegate(func);
+            Log.StartTestStep("some step", new Dictionary<string, string>());
+            Log.Fail("Failed step");
+            func.Received(1);
+        }
+
+        [Fact]
+        public void CaptureScreenshot_OnCapture_GeneratesScreenshot()
+        {
+            ScreenCapture.CaptureScreenShot(_fileService, "screenshot_1.png");
+            _fileService.Received(1).SaveImage("screenshot_1.png", Arg.Any<System.Drawing.Bitmap>(),
+                Arg.Any<System.Drawing.Imaging.ImageFormat>());
+        }
+
     }
 }

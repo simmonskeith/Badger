@@ -80,17 +80,18 @@
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.Controls.Add(this.tableLayoutPanel3, 0, 1);
             this.tableLayoutPanel1.Controls.Add(this.tableLayoutPanel4, 0, 3);
-            this.tableLayoutPanel1.Controls.Add(this.tableLayoutPanel2, 0, 4);
+            this.tableLayoutPanel1.Controls.Add(this.tableLayoutPanel2, 0, 5);
             this.tableLayoutPanel1.Controls.Add(this.tableLayoutPanel5, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.tableLayoutPanel6, 0, 2);
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 24);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.Padding = new System.Windows.Forms.Padding(6, 7, 6, 7);
-            this.tableLayoutPanel1.RowCount = 5;
+            this.tableLayoutPanel1.RowCount = 7;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.Size = new System.Drawing.Size(784, 417);
             this.tableLayoutPanel1.TabIndex = 0;
@@ -311,6 +312,7 @@
             // 
             // txtTags
             // 
+            this.txtTags.BackColor = System.Drawing.Color.SkyBlue;
             this.txtTags.Dock = System.Windows.Forms.DockStyle.Fill;
             this.txtTags.Location = new System.Drawing.Point(3, 26);
             this.txtTags.Multiline = true;
@@ -320,6 +322,7 @@
             // 
             // txtExcludeTags
             // 
+            this.txtExcludeTags.BackColor = System.Drawing.Color.SkyBlue;
             this.txtExcludeTags.Dock = System.Windows.Forms.DockStyle.Fill;
             this.txtExcludeTags.Location = new System.Drawing.Point(386, 26);
             this.txtExcludeTags.Multiline = true;
